@@ -1,0 +1,28 @@
+/* src/app/securite/alertes/alertes.component.css */
+.page{color:#e8eaf0}.section-header{margin-bottom:1.5rem}
+.section-title{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;letter-spacing:-.5px;margin-bottom:.2rem}
+.section-sub{font-size:13px;color:#4a5568}
+.alert-banner{border-radius:10px;padding:.75rem 1rem;font-size:13px;display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;border:1px solid}
+.alert-banner.warn{background:rgba(255,183,77,.08);border-color:rgba(255,183,77,.25);color:#ffb74d}
+.alert-banner.success{background:rgba(105,240,174,.08);border-color:rgba(105,240,174,.25);color:#69f0ae}
+.dc-card{background:#111827;border:1px solid #1c2a3e;border-radius:12px;padding:1.25rem}
+.alerte-card{border-radius:12px;padding:1rem;margin-bottom:.75rem;border:1px solid #1c2a3e;transition:opacity .3s}
+.alerte-card.critique{border-color:rgba(255,82,82,.4);background:rgba(255,82,82,.05)}
+.alerte-card.haute{border-color:rgba(255,183,77,.3);background:rgba(255,183,77,.04)}
+.alerte-card.moyenne{border-color:rgba(255,183,77,.2);background:rgba(255,183,77,.03)}
+.alerte-card.resolue{opacity:.5}
+.alerte-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.3rem}
+.alerte-title{font-size:13.5px;font-weight:600;color:#e8eaf0}
+.alerte-meta{font-size:11px;color:#4a5568;font-family:'JetBrains Mono',monospace;margin-bottom:.5rem}
+.alerte-desc{font-size:12.5px;color:#8899aa;margin-bottom:.75rem}
+.alerte-actions{display:flex;gap:.5rem}
+.chip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:600;font-family:'JetBrains Mono',monospace}
+.chip.success{background:rgba(105,240,174,.12);color:#69f0ae;border:1px solid rgba(105,240,174,.25)}
+.chip.danger{background:rgba(255,82,82,.12);color:#ff5252;border:1px solid rgba(255,82,82,.25)}
+.chip.warn{background:rgba(255,183,77,.12);color:#ffb74d;border:1px solid rgba(255,183,77,.25)}
+.btn-sm{padding:.38rem .85rem;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;border:none;transition:all .18s;font-family:'DM Sans',sans-serif}
+.btn-sm.gold{background:#e8b84b;color:#07090f}.btn-sm.gold:hover{background:#c99a30}
+.btn-sm.ghost{background:#141e2e;color:#8899aa;border:1px solid #1c2a3e}.btn-sm.ghost:hover{color:#e8eaf0;border-color:#243347}
+.skeleton-alerte{height:90px;background:linear-gradient(90deg,#1c2a3e 25%,#243347 50%,#1c2a3e 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:12px;margin-bottom:.75rem}
+@keyframes shimmer{to{background-position:-200% 0}}
+.empty-state{text-align:center;padding:2.5rem;color:#4a5568;font-size:13px}

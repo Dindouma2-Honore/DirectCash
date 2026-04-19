@@ -1,0 +1,88 @@
+<!-- src/app/shared/components/sidebar/sidebar.component.html -->
+<aside class="sidebar" [class.sidebar-open]="open">
+
+  <!-- Logo -->
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <div class="logo-icon">💳</div>
+      <div>
+        <div class="logo-wordmark">Direct<span>Cash</span></div>
+        <div class="logo-badge">● SÉCURISÉ</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sidebar-nav">
+
+    <span class="nav-section">Principal</span>
+    <a class="nav-item" routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}"
+      (click)="close()">
+      <span class="nav-icon">📊</span> Tableau de bord
+    </a>
+
+    <span class="nav-section">Authentification</span>
+
+    <!-- Mon profil → route protégée /profil -->
+    <a class="nav-item" routerLink="/profil" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}"
+      (click)="close()">
+      <span class="nav-icon">👤</span> Mon profil
+    </a>
+
+    <!-- Vérification OTP → déjà dans /securite/2fa -->
+    <a class="nav-item" routerLink="/securite/2fa" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}"
+      (click)="close()">
+      <span class="nav-icon">🔑</span> Vérification OTP
+    </a>
+
+    <span class="nav-section">Transactions</span>
+    <a class="nav-item" routerLink="/transactions/depot" routerLinkActive="active" (click)="close()">
+      <span class="nav-icon">⬇️</span> Dépôt
+    </a>
+    <a class="nav-item" routerLink="/transactions/envoi" routerLinkActive="active" (click)="close()">
+      <span class="nav-icon">➡️</span> Envoi d'argent
+    </a>
+    <a class="nav-item" routerLink="/transactions/retrait" routerLinkActive="active" (click)="close()">
+      <span class="nav-icon">⬆️</span> Retrait
+    </a>
+    <a class="nav-item" routerLink="/transactions/historique" routerLinkActive="active" (click)="close()">
+      <span class="nav-icon">📋</span> Historique
+    </a>
+
+    <span class="nav-section">Sécurité</span>
+    <a class="nav-item" routerLink="/securite/logs" routerLinkActive="active" (click)="close()">
+      <span class="nav-icon">📄</span> Journaux
+      <span class="nav-badge warn">3</span>
+    </a>
+    <a class="nav-item" routerLink="/securite/alertes" routerLinkActive="active" (click)="close()">
+      <span class="nav-icon">🚨</span> Alertes
+      <span class="nav-badge">1</span>
+    </a>
+    <a class="nav-item" routerLink="/securite/2fa" routerLinkActive="active" (click)="close()">
+      <span class="nav-icon">🛡️</span> Paramètres 2FA
+    </a>
+
+    @if (auth.isAdmin()) {
+    <span class="nav-section">Administration</span>
+    <a class="nav-item" routerLink="/admin/utilisateurs" routerLinkActive="active" (click)="close()">
+      <span class="nav-icon">👥</span> Utilisateurs
+    </a>
+    <a class="nav-item" routerLink="/admin/supervision" routerLinkActive="active" (click)="close()">
+      <span class="nav-icon">🌐</span> Supervision
+    </a>
+    }
+
+  </nav>
+
+  <!-- User footer -->
+  <div class="sidebar-footer">
+    <div class="user-pill">
+      <div class="user-avatar">{{ auth.initiales() }}</div>
+      <div class="user-info">
+        <div class="user-name">{{ auth.nomComplet() }}</div>
+        <div class="user-role">{{ auth.user()?.compte }} · {{ auth.user()?.role?.toUpperCase() }}</div>
+      </div>
+    </div>
+    <button class="btn-logout" (click)="auth.logout()">🚪 Déconnexion</button>
+  </div>
+</aside>

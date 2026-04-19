@@ -1,0 +1,14 @@
+<!-- src/app/shared/components/layout/layout.component.html -->
+<div class="app-shell">
+  @if (sidebarOpen()) {
+    <div class="sidebar-overlay" (click)="closeSidebar()"></div>
+  }
+  <app-sidebar [open]="sidebarOpen()" (closeRequest)="closeSidebar()" />
+  <div class="main-content">
+    <app-topbar (menuToggle)="toggleSidebar()" />
+    <div class="page-wrapper">
+      <router-outlet />
+    </div>
+  </div>
+</div>
+<app-toast-container />

@@ -1,0 +1,83 @@
+<!-- src/app/auth/login/login.component.html -->
+<div class="auth-shell">
+  <div class="auth-glow"></div>
+  <div class="auth-card">
+
+    <div class="auth-logo">
+      <div class="logo-icon">💳</div>
+      <div>
+        <div class="logo-wordmark">Direct<span>Cash</span></div>
+        <div class="logo-sub">SECURE PAYMENT PLATFORM</div>
+      </div>
+    </div>
+
+    <h1 class="auth-title">Connexion</h1>
+    <p class="auth-subtitle">Accédez à votre espace sécurisé</p>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+      <div class="field-group">
+        <label class="dc-label" for="compte">Numéro de compte</label>
+        <div class="input-wrap">
+          <span class="input-icon">🪙</span>
+          <input id="compte" class="dc-input"
+            [class.input-error]="isInvalid('compte')"
+            formControlName="compte"
+            placeholder="DC-237-XXXX"
+            autocomplete="username">
+        </div>
+        @if (isInvalid('compte')) {
+          <span class="field-error">Format requis : DC-237-XXXX</span>
+        }
+      </div>
+
+      <div class="field-group">
+        <label class="dc-label" for="mdp">Mot de passe</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input id="mdp" class="dc-input"
+            [class.input-error]="isInvalid('mot_de_passe')"
+            formControlName="mot_de_passe"
+            [type]="showMdp() ? 'text' : 'password'"
+            placeholder="••••••••"
+            autocomplete="current-password">
+          <button type="button" class="input-eye" (click)="showMdp.set(!showMdp())">
+            {{ showMdp() ? '🙈' : '👁' }}
+          </button>
+        </div>
+        @if (isInvalid('mot_de_passe')) {
+          <span class="field-error">Mot de passe requis</span>
+        }
+      </div>
+
+      @if (auth.loginAttempts() < 3) {
+        <div class="attempts-bar">
+          <span class="attempts-label">⚠️ {{ auth.loginAttempts() }} tentative(s) restante(s)</span>
+          <div class="progress-track">
+            <div class="progress-fill"
+              [style.width]="(auth.loginAttempts() / 3 * 100) + '%'"
+              [class.critical]="auth.loginAttempts() === 1"></div>
+          </div>
+        </div>
+      }
+
+      @if (erreur()) {
+        <div class="dc-alert danger">
+          <span>⚠️</span><span>{{ erreur() }}</span>
+        </div>
+      }
+
+      <button type="submit" class="btn-submit" [disabled]="loading() || form.invalid">
+        @if (loading()) { <span class="spinner"></span> Vérification… }
+        @else { 🔐 Se connecter }
+      </button>
+
+    </form>
+
+    <div class="auth-divider"></div>
+    <p class="auth-footer">
+      Pas encore de compte ?
+      <a routerLink="/auth/inscription" class="link-gold">Créer un compte</a>
+    </p>
+  </div>
+</div>

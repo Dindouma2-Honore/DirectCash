@@ -1,0 +1,117 @@
+/* ================================================================
+   directcash/frontend/src/styles/global.css
+   Design System DirectCash — Variables CSS + Base globale
+   ================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* ── Variables CSS ──────────────────────────────────────────────── */
+:root {
+  --dc-bg:        #07090f;
+  --dc-surface:   #0d1117;
+  --dc-card:      #111827;
+  --dc-card2:     #141e2e;
+  --dc-border:    #1c2a3e;
+  --dc-border2:   #243347;
+  --dc-gold:      #e8b84b;
+  --dc-gold-dim:  #c99a30;
+  --dc-gold-glow: rgba(232,184,75,.12);
+  --dc-teal:      #1de9b6;
+  --dc-teal-dim:  #00bfa5;
+  --dc-teal-glow: rgba(29,233,182,.12);
+  --dc-blue:      #4fc3f7;
+  --dc-danger:    #ff5252;
+  --dc-warn:      #ffb74d;
+  --dc-success:   #69f0ae;
+  --dc-purple:    #ce93d8;
+  --dc-text:      #e8eaf0;
+  --dc-text2:     #8899aa;
+  --dc-text3:     #4a5568;
+  --font-display: 'Syne', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --sidebar-w:    240px;
+  --topbar-h:     58px;
+}
+
+/* ── Reset ──────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow-x: hidden; }
+body {
+  background: var(--dc-bg);
+  color: var(--dc-text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--dc-gold); text-decoration: none; }
+a:hover { text-decoration: underline; }
+input, select, button, textarea { font-family: var(--font-body); }
+
+/* ── Scrollbar ──────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--dc-surface); }
+::-webkit-scrollbar-thumb { background: var(--dc-border2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #2d4060; }
+
+/* ── App Shell ──────────────────────────────────────────────────── */
+.app-shell {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+.page-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.75rem;
+}
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 140;
+  cursor: pointer;
+}
+
+/* ── Utilitaires globaux ────────────────────────────────────────── */
+.mono         { font-family: var(--font-mono); }
+.fw-display   { font-family: var(--font-display); }
+.text-gold    { color: var(--dc-gold); }
+.text-teal    { color: var(--dc-teal); }
+.text-danger  { color: var(--dc-danger); }
+.text-success { color: var(--dc-success); }
+.text-warn    { color: var(--dc-warn); }
+.text-muted   { color: var(--dc-text3); }
+
+/* ── Animations globales ────────────────────────────────────────── */
+@keyframes fadeIn      { from { opacity:0; } to { opacity:1; } }
+@keyframes slideUp     { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+@keyframes shimmer     { to   { background-position:-200% 0; } }
+@keyframes pulseDot    { 0%,100%{opacity:1} 50%{opacity:.3} }
+@keyframes spin        { to   { transform:rotate(360deg); } }
+@keyframes modalIn     { from{opacity:0;transform:scale(.96) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} }
+
+/* ── Spinner global ─────────────────────────────────────────────── */
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(7,9,15,.3);
+  border-top-color: #07090f;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  display: inline-block;
+}
+
+/* ── Responsive base ────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .page-wrapper { padding: 1rem; }
+  .app-shell { flex-direction: column; height: auto; min-height: 100vh; }
+  .main-content { height: auto; }
+}

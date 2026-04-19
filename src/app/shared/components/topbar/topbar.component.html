@@ -1,0 +1,66 @@
+<!-- src/app/shared/components/topbar/topbar.component.html -->
+<header class="topbar">
+
+  <!-- Burger mobile -->
+  <button class="hamburger" (click)="menuToggle.emit()">☰</button>
+
+  <!-- Titre page -->
+  <div class="topbar-left">
+    <div class="topbar-title">{{ pageTitle() }}</div>
+    <div class="topbar-path">{{ pagePath() }}</div>
+  </div>
+
+  <div class="topbar-right">
+
+    <!-- Bandeau mode démo -->
+    @if (auth.demoMode()) {
+      <div class="demo-chip">
+        ⚡ Mode démo — backend non connecté
+      </div>
+    } @else {
+      <div class="status-chip">
+        <span class="status-dot"></span>Système actif
+      </div>
+    }
+
+    <!-- Bouton notifications -->
+    <div class="topbar-btn" [class.has-notif]="notifService.nonLues() > 0"
+         (click)="notifOpen.set(!notifOpen())">
+      🔔
+      @if (notifService.nonLues() > 0) {
+        <span class="notif-count">{{ notifService.nonLues() }}</span>
+      }
+    </div>
+
+    <!-- Drawer notifications -->
+    @if (notifOpen()) {
+      <div class="notif-overlay" (click)="fermerNotif()"></div>
+      <div class="notif-drawer">
+        <div class="notif-header">
+          <span class="notif-header-title">🔔 Notifications</span>
+          <div class="notif-header-actions">
+            @if (notifService.nonLues() > 0) {
+              <button class="btn-tout-lire" (click)="marquerToutLu()">Tout lire</button>
+            }
+            <button class="btn-fermer" (click)="fermerNotif()">✕</button>
+          </div>
+        </div>
+        <div class="notif-list">
+          @for (n of notifService.notifications(); track n.id) {
+            <div class="notif-item" [class.unread]="!n.lu" (click)="marquerLu(n.id)">
+              <div class="notif-title">{{ n.titre }}</div>
+              <div class="notif-body">{{ n.corps }}</div>
+              <div class="notif-time">{{ n.created_at | date:'dd/MM HH:mm' }}</div>
+            </div>
+          }
+          @if (notifService.notifications().length === 0) {
+            <div class="notif-empty">📭 Aucune notification</div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Paramètres -->
+    <a class="topbar-btn" routerLink="/securite/2fa" title="Paramètres">⚙️</a>
+  </div>
+</header>

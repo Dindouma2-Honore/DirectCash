@@ -1,0 +1,128 @@
+<!-- src/app/securite/parametres-2fa/parametres-2fa.component.html -->
+<div class="page">
+  <div class="section-header">
+    <h1 class="section-title">Paramètres 2FA</h1>
+    <p class="section-sub">Gérez votre authentification à double facteur</p>
+  </div>
+
+  <div class="two-col">
+
+    <!-- Colonne gauche -->
+    <div class="left-col">
+
+      <!-- Statut 2FA -->
+      <div class="dc-card">
+        <div class="dc-card-title">Statut 2FA</div>
+        <div class="status-banner">
+          <span>✅</span>
+          <span>Authentification 2FA <strong>activée</strong> — compte protégé</span>
+        </div>
+        <div class="options-list">
+          @for (opt of options(); track opt.label; let i = $index) {
+            <div class="option-row">
+              <span class="option-label">{{ opt.label }}</span>
+              <button class="toggle-btn" [class.on]="opt.actif" (click)="toggleOption(i)">
+                <span class="toggle-thumb"></span>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Méthode OTP -->
+      <div class="dc-card">
+        <div class="dc-card-title">Méthode de réception OTP</div>
+        <div class="dc-card-sub">Choisissez comment vous recevez vos codes</div>
+        <div class="methodes-list">
+          @for (m of methodesOtp; track m.val) {
+            <label class="methode-radio" [class.selected]="methodeChoisie === m.val">
+              <input type="radio" name="otp-method" [value]="m.val" [(ngModel)]="methodeChoisie">
+              <div class="methode-content">
+                <strong>{{ m.label }}</strong>
+                <span class="methode-detail">{{ m.detail }}</span>
+              </div>
+            </label>
+          }
+        </div>
+        <button class="btn-action gold" (click)="sauvegarderMethode()">💾 Sauvegarder</button>
+      </div>
+
+      <!-- PIN -->
+      <div class="dc-card">
+        <div class="dc-card-title">Changer le PIN de retrait</div>
+        <div class="dc-card-sub">Code à 4-6 chiffres utilisé pour confirmer les retraits</div>
+        <form [formGroup]="pinForm" (ngSubmit)="changerPin()">
+          <div class="field-group">
+            <label class="dc-label">PIN actuel</label>
+            <input class="dc-input mono" formControlName="ancien" type="password"
+              maxlength="6" placeholder="••••••" [class.input-error]="isInvalidPin('ancien')">
+            @if (isInvalidPin('ancien')) { <span class="field-error">PIN requis (4 chiffres min)</span> }
+          </div>
+          <div class="field-group">
+            <label class="dc-label">Nouveau PIN</label>
+            <input class="dc-input mono" formControlName="nouveau" type="password"
+              maxlength="6" placeholder="••••••" [class.input-error]="isInvalidPin('nouveau')">
+            @if (isInvalidPin('nouveau')) { <span class="field-error">4 chiffres minimum</span> }
+          </div>
+          <div class="field-group">
+            <label class="dc-label">Confirmer le nouveau PIN</label>
+            <input class="dc-input mono" formControlName="confirmation" type="password"
+              maxlength="6" placeholder="••••••" [class.input-error]="isInvalidPin('confirmation')">
+          </div>
+          <button type="submit" class="btn-action gold" [disabled]="pinForm.invalid">🔐 Mettre à jour le PIN</button>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- Colonne droite -->
+    <div class="right-col">
+
+      <!-- Sessions actives -->
+      <div class="dc-card">
+        <div class="dc-card-title">Sessions actives</div>
+        <div class="dc-card-sub">Appareils connectés à votre compte</div>
+        <div class="sessions-list">
+          @for (s of sessions(); track s.id) {
+            <div class="session-row" [class.current]="s.actuel">
+              <div class="session-info">
+                <div class="session-device">{{ s.appareil }}</div>
+                <div class="session-meta">{{ s.localisation }} · {{ s.date }}</div>
+              </div>
+              @if (s.actuel) {
+                <span class="chip gold">ACTUEL</span>
+              } @else {
+                <button class="btn-revoquer" (click)="revoquerSession(s.id)">Révoquer</button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Codes de récupération -->
+      <div class="dc-card">
+        <div class="dc-card-title">Codes de récupération</div>
+        <div class="dc-card-sub">Conservez ces codes en lieu sûr — utilisables si vous perdez l'accès OTP</div>
+        <div class="backup-codes">
+          @for (code of codesBackup; track code) {
+            <div class="backup-code">{{ code }}</div>
+          }
+        </div>
+        <button class="btn-action ghost" (click)="copierCodes()">📋 Copier tous les codes</button>
+      </div>
+
+      <!-- Audit sécurité -->
+      <div class="dc-card audit-card">
+        <div class="dc-card-title">Audit de sécurité</div>
+        <div class="audit-list">
+          <div class="audit-row ok"><span>✅</span><span>Mot de passe fort (bcrypt)</span></div>
+          <div class="audit-row ok"><span>✅</span><span>2FA activé par SMS</span></div>
+          <div class="audit-row ok"><span>✅</span><span>JWT HS256 · exp 15 min</span></div>
+          <div class="audit-row ok"><span>✅</span><span>Rate limiting actif</span></div>
+          <div class="audit-row warn"><span>⚠️</span><span>Email non vérifié</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

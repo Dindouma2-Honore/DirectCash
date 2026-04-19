@@ -1,0 +1,83 @@
+<!-- src/app/transactions/retrait/retrait.component.html -->
+<div class="page">
+  <div class="section-header">
+    <h1 class="section-title">Retrait</h1>
+    <p class="section-sub">Retirez des fonds de votre compte</p>
+  </div>
+  <div class="two-col">
+    <div class="dc-card">
+      <div class="dc-card-title">Demande de retrait</div>
+      <div class="dc-card-sub">Solde disponible : <strong class="gold-text">{{ compte.compte()?.solde | number:'1.0-0':'fr-FR' }} FCFA</strong></div>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+        <div class="field-group">
+          <label class="dc-label">Montant (FCFA)</label>
+          <div class="input-wrap">
+            <span class="input-pfx">₣</span>
+            <input class="dc-input has-pfx" formControlName="montant" type="number"
+              min="500" placeholder="0" [class.input-error]="isInvalid('montant')">
+          </div>
+          @if (isInvalid('montant')) { <span class="field-error">Minimum 500 FCFA</span> }
+        </div>
+
+        <div class="field-group">
+          <label class="dc-label">Mode de retrait</label>
+          <select class="dc-select" formControlName="mode">
+            <option value="orange_money">Orange Money</option>
+            <option value="mtn_momo">MTN MoMo</option>
+            <option value="virement">Virement bancaire</option>
+            <option value="agence">Retrait agence</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label class="dc-label">Code PIN</label>
+          <input class="dc-input mono" formControlName="pin" type="password"
+            maxlength="6" placeholder="••••••"
+            [class.input-error]="isInvalid('pin')">
+          @if (isInvalid('pin')) { <span class="field-error">PIN requis (4-6 chiffres)</span> }
+        </div>
+
+        @if (showOtp()) {
+          <div class="field-group">
+            <label class="dc-label">Code OTP (envoyé par SMS)</label>
+            <div class="otp-row">
+              @for (i of [0,1,2,3,4,5]; track i) {
+                <input class="otp-box" [id]="'rotp'+i" maxlength="1"
+                  (input)="otpInput($event,i)" (keydown)="otpKey($event,i)">
+              }
+            </div>
+          </div>
+        }
+
+        @if (erreur()) { <div class="alert danger"><span>⚠️</span><span>{{ erreur() }}</span></div> }
+
+        <button type="submit" class="btn-submit danger" [disabled]="form.invalid || loading()">
+          @if (loading()) { <span class="spinner"></span> Traitement… }
+          @else if (!showOtp()) { ⬆️ Demander le retrait }
+          @else { ✅ Confirmer le retrait }
+        </button>
+      </form>
+    </div>
+
+    <!-- Plafonds -->
+    <div class="dc-card">
+      <div class="dc-card-title">Plafonds de retrait</div>
+      <div class="dc-card-sub">Limites de votre compte</div>
+      <div class="plafonds-list">
+        @for (p of plafonds; track p.label) {
+          <div class="plafond-item">
+            <div class="plafond-header">
+              <span class="plafond-label">{{ p.label }}</span>
+              <span class="plafond-val mono">{{ p.utilise | number:'1.0-0':'fr-FR' }} / {{ p.max | number:'1.0-0':'fr-FR' }} FCFA</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" [style.width]="pct(p)+'%'" [style.background]="barColor(p)"></div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,11 @@
+{
+  "/api": {
+    "target": "http://localhost/directcash/backend",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api": ""
+    },
+    "logLevel": "info"
+  }
+}

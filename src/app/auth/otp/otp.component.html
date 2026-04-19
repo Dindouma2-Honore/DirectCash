@@ -1,0 +1,49 @@
+<!-- src/app/auth/otp/otp.component.html -->
+<div class="auth-shell">
+  <div class="auth-glow"></div>
+  <div class="auth-card" style="text-align:center">
+
+    <div class="otp-icon">📱</div>
+    <h1 class="auth-title">Vérification OTP</h1>
+    <p class="auth-subtitle">
+      Code à 6 chiffres envoyé au<br>
+      <strong class="tel">+237 6** *** **01</strong>
+    </p>
+
+    <div class="otp-wrap">
+      @for (i of [0,1,2,3,4,5]; track i) {
+        <input #otpInput class="otp-digit"
+          [class.otp-error]="erreur() && !loading()"
+          maxlength="1" inputmode="numeric"
+          (input)="onInput($event, i)"
+          (keydown)="onKeydown($event, i)"
+          (paste)="onPaste($event)">
+      }
+    </div>
+
+    <div class="otp-timer">
+      @if (expired()) {
+        <span class="expired">⏰ Code expiré</span>
+      } @else {
+        <span>Expire dans <strong class="countdown">{{ timerDisplay() }}</strong></span>
+      }
+    </div>
+
+    @if (erreur()) {
+      <div class="dc-alert danger">⚠️ {{ erreur() }}</div>
+    }
+
+    <button class="btn-submit" [disabled]="!codeComplet() || loading() || expired()" (click)="verifier()">
+      @if (loading()) { <span class="spinner"></span> Vérification… }
+      @else { ✅ Vérifier le code }
+    </button>
+
+    <p class="resend-text">
+      Pas reçu ?
+      <button class="btn-resend" [disabled]="!expired() && countdown() > 240" (click)="renvoyer()">
+        {{ renvoye() ? '✅ Renvoyé !' : 'Renvoyer' }}
+      </button>
+    </p>
+
+  </div>
+</div>

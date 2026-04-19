@@ -1,0 +1,88 @@
+/* src/app/auth/login/login.component.css */
+.auth-shell {
+  min-height: 100vh; background: #07090f;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1.5rem; position: relative; overflow: hidden;
+}
+.auth-glow {
+  position: absolute; top: -200px; left: 50%;
+  transform: translateX(-50%);
+  width: 600px; height: 600px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(232,184,75,.07) 0%, transparent 65%);
+  pointer-events: none;
+}
+.auth-card {
+  background: #111827; border: 1px solid #243347;
+  border-radius: 20px; padding: 2.25rem;
+  width: 100%; max-width: 420px; position: relative; z-index: 1;
+}
+.auth-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 1.75rem; }
+.logo-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, #e8b84b 0%, #f5a623 100%);
+  border-radius: 8px; display: flex; align-items: center;
+  justify-content: center; font-size: 18px;
+}
+.logo-wordmark { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800; color: #e8eaf0; }
+.logo-wordmark span { color: #e8b84b; }
+.logo-sub { font-size: 9px; color: #4a5568; font-family: 'JetBrains Mono', monospace; letter-spacing: .5px; }
+.auth-title    { font-family: 'Syne', sans-serif; font-size: 1.55rem; font-weight: 800; letter-spacing: -1px; color: #e8eaf0; margin-bottom: .3rem; }
+.auth-subtitle { font-size: 13px; color: #4a5568; margin-bottom: 1.5rem; }
+.auth-divider  { height: 1px; background: #1c2a3e; margin: 1.25rem 0; }
+.auth-footer   { text-align: center; font-size: 13px; color: #4a5568; }
+.link-gold     { color: #e8b84b; font-weight: 600; }
+
+/* Fields */
+.field-group  { margin-bottom: 1rem; }
+.dc-label {
+  font-size: 11px; font-weight: 700; color: #8899aa;
+  text-transform: uppercase; letter-spacing: .8px;
+  margin-bottom: 5px; display: block; font-family: 'Syne', sans-serif;
+}
+.input-wrap   { position: relative; display: flex; align-items: center; }
+.input-icon   { position: absolute; left: .875rem; font-size: 14px; color: #4a5568; pointer-events: none; }
+.input-eye    { position: absolute; right: .75rem; background: none; border: none; cursor: pointer; color: #4a5568; padding: 0; font-size: 14px; }
+.dc-input {
+  width: 100%; background: #0d1117; border: 1px solid #1c2a3e;
+  border-radius: 8px; padding: .6rem .875rem .6rem 2.5rem;
+  color: #e8eaf0; font-family: 'DM Sans', sans-serif;
+  font-size: 14px; outline: none; transition: all 0.18s;
+}
+.dc-input:focus { border-color: #e8b84b; box-shadow: 0 0 0 3px rgba(232,184,75,.12); }
+.dc-input::placeholder { color: #4a5568; }
+.dc-input.input-error { border-color: #ff5252; box-shadow: 0 0 0 3px rgba(255,82,82,.12); }
+.field-error { font-size: 11.5px; color: #ff5252; margin-top: 4px; display: block; }
+
+/* Attempts */
+.attempts-bar  { margin-bottom: .75rem; padding: .5rem .75rem; background: rgba(255,183,77,.08); border: 1px solid rgba(255,183,77,.2); border-radius: 8px; }
+.attempts-label{ font-size: 12px; color: #ffb74d; margin-bottom: 6px; display: block; }
+.progress-track{ height: 6px; background: #1c2a3e; border-radius: 20px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 20px; background: #ffb74d; transition: width .4s; }
+.progress-fill.critical { background: #ff5252; }
+
+/* Alert */
+.dc-alert {
+  border-radius: 8px; padding: .75rem 1rem; font-size: 13px;
+  display: flex; align-items: flex-start; gap: 8px; margin-bottom: 1rem;
+}
+.dc-alert.danger { background: rgba(255,82,82,.08); border: 1px solid rgba(255,82,82,.2); color: #ff5252; }
+
+/* Submit */
+.btn-submit {
+  width: 100%; background: #e8b84b; color: #07090f;
+  border: none; padding: .72rem 1.25rem;
+  border-radius: 10px; font-weight: 700; font-size: 15px;
+  cursor: pointer; transition: all 0.18s; display: flex;
+  align-items: center; justify-content: center; gap: 8px;
+  font-family: 'DM Sans', sans-serif;
+}
+.btn-submit:hover:not(:disabled) { background: #c99a30; transform: translateY(-1px); }
+.btn-submit:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Spinner */
+.spinner {
+  width: 16px; height: 16px; border: 2px solid rgba(7,9,15,.3);
+  border-top-color: #07090f; border-radius: 50%;
+  animation: spin .7s linear infinite; display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }

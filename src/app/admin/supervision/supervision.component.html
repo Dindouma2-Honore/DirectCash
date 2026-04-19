@@ -1,0 +1,71 @@
+<!-- src/app/admin/supervision/supervision.component.html -->
+<div class="page">
+  <div class="section-header">
+    <h1 class="section-title">Supervision globale</h1>
+    <p class="section-sub">Vue en temps réel de la plateforme DirectCash</p>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-card gold"><span class="kpi-ico">👥</span>
+      <div class="kpi-label">Utilisateurs actifs</div>
+      <div class="kpi-val gold-text">{{ stats()?.utilisateurs_actifs | number:'1.0-0':'fr-FR' }}</div>
+    </div>
+    <div class="kpi-card teal"><span class="kpi-ico">💸</span>
+      <div class="kpi-label">Volume du jour</div>
+      <div class="kpi-val teal-text">{{ formatVol(stats()?.volume_jour ?? 0) }}</div>
+      <div class="kpi-meta">FCFA · {{ stats()?.nb_transactions_jour }} tx</div>
+    </div>
+    <div class="kpi-card success"><span class="kpi-ico">✅</span>
+      <div class="kpi-label">Disponibilité SLA</div>
+      <div class="kpi-val success-text">{{ stats()?.disponibilite }}%</div>
+    </div>
+    <div class="kpi-card danger"><span class="kpi-ico">🚫</span>
+      <div class="kpi-label">Attaques bloquées</div>
+      <div class="kpi-val danger-text">{{ stats()?.attaques_bloquees }}</div>
+      <div class="kpi-meta">Aujourd'hui</div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="dc-card">
+      <div class="card-head">
+        <div class="dc-card-title">🩺 Santé des services PHP</div>
+        <button class="btn-refresh" (click)="verifierServices()">↻ Vérifier</button>
+      </div>
+      <div class="services-list">
+        @for (s of services(); track s.fichier) {
+          <div class="service-row">
+            <div class="service-info">
+              <strong class="service-nom">{{ s.nom }}</strong>
+              <span class="service-fichier mono">{{ s.fichier }}</span>
+            </div>
+            <div class="service-right">
+              @if (s.latence_ms) { <span class="latence mono">{{ s.latence_ms }}ms</span> }
+              <span class="chip" [class]="sClass(s.statut)">{{ sLabel(s.statut) }}</span>
+            </div>
+          </div>
+        }
+        @if (services().length === 0) {
+          @for (i of [1,2,3,4,5,6,7]; track i) { <div class="skeleton-service"></div> }
+        }
+      </div>
+    </div>
+
+    <div class="dc-card">
+      <div class="dc-card-title">Dernières transactions</div>
+      <div class="dc-card-sub">Toute la plateforme — temps réel</div>
+      @for (tx of dernieresTx; track tx.code) {
+        <div class="tx-item">
+          <div class="tx-icon" [class]="tx.type">{{ txIcon(tx.type) }}</div>
+          <div class="tx-body">
+            <div class="tx-label">{{ tx.label }}</div>
+            <div class="tx-meta mono">{{ tx.code }} · {{ tx.quand }}</div>
+          </div>
+          <div class="tx-amount" [class.pos]="tx.type === 'depot'" [class.neg]="tx.type !== 'depot'">
+            {{ tx.type === 'depot' ? '+' : '-' }}{{ tx.montant | number:'1.0-0':'fr-FR' }} F
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

@@ -1,0 +1,143 @@
+<!-- src/app/dashboard/dashboard.component.html -->
+<div class="page">
+
+  <!-- En-tête -->
+  <div class="section-header">
+    <h1 class="section-title">Bonjour, {{ auth.user()?.prenom }} 👋</h1>
+    <p class="section-sub">Vue d'ensemble de votre compte DirectCash</p>
+  </div>
+
+  <!-- Haut : carte compte + KPIs -->
+  <div class="top-grid">
+
+    <!-- Carte bancaire -->
+    <div class="account-card">
+      <div class="card-inner">
+        <div class="card-top">
+          <div class="card-chip"></div>
+          <span class="card-brand">DIRECTCASH</span>
+        </div>
+        <div class="card-number">{{ auth.user()?.compte }} · XAF</div>
+        <div class="card-bottom">
+          <div>
+            <div class="card-owner-lbl">Titulaire</div>
+            <div class="card-owner-name">{{ auth.user()?.nom }} {{ auth.user()?.prenom }}</div>
+          </div>
+          <div class="card-balance-block">
+            <div class="card-balance-lbl">Solde disponible</div>
+            @if (compte.compte()) {
+              <div class="card-balance-val">
+                {{ compte.compte()!.solde | number:'1.0-0':'fr-FR' }} FCFA
+              </div>
+            } @else {
+              <div class="skeleton-bal"></div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card gold">
+        <span class="kpi-icon">💰</span>
+        <div class="kpi-label">Dépôts ce mois</div>
+        <div class="kpi-value gold-text">   {{ (totalDepotsMois().totalMontant| number:'1.0-0') || '0' }} FCFA</div>
+        <div class="kpi-meta">{{ totalDepotsMois().totalNombre }} depots </div>
+      </div>
+      <div class="kpi-card danger">
+        <span class="kpi-icon">📤</span>
+        <div class="kpi-label">Envois ce mois</div>
+        <div class="kpi-value danger-text">{{(totalDepotsMois().totalMontant | number:'1.0-0' )|| '0'}} FCFA</div>
+        <div class="kpi-meta">{{(totalDepotsMois().totalNombre)}} tx</div>
+      </div>
+      <div class="kpi-card teal">
+        <span class="kpi-icon">✅</span>
+        <div class="kpi-label">Transactions</div>
+        <div class="kpi-value teal-text">47</div>
+        <div class="kpi-meta">100% succès</div>
+      </div>
+      <div class="kpi-card success">
+        <span class="kpi-icon">🛡️</span>
+        <div class="kpi-label">Score sécurité</div>
+        <div class="kpi-value success-text">94</div>
+        <div class="kpi-meta">/100 Enterprise</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bas : transactions + accès rapides -->
+  <div class="bottom-grid">
+
+    <!-- Transactions récentes -->
+    <div class="dc-card">
+      <div class="card-header-row">
+        <div>
+          <div class="dc-card-title">Transactions récentes</div>
+          <div class="dc-card-sub">5 dernières opérations</div>
+        </div>
+        <a routerLink="/transactions/historique" class="btn-outline-sm">Voir tout →</a>
+      </div>
+
+      @if (txService.loading()) {
+        @for (i of [1,2,3]; track i) {
+          <div class="tx-skeleton"></div>
+        }
+      } @else {
+        @for (tx of txService.transactions().slice(0, 5); track tx.id) {
+          <div class="tx-item">
+            <div class="tx-icon" [class]="tx.type">{{ txIcon(tx.type) }}</div>
+            <div class="tx-body">
+              <div class="tx-label">{{ txLabel(tx) }}</div>
+              <div class="tx-meta">{{ tx.code }} · {{ tx.created_at | date:'dd/MM/yyyy HH:mm' }}</div>
+            </div>
+            <div class="tx-right">
+              <div class="tx-amount" [class.positive]="tx.type==='depot'" [class.negative]="tx.type!=='depot'">
+                {{ tx.type === 'depot' ? '+' : '-' }}{{ tx.montant | number:'1.0-0':'fr-FR' }} FCFA
+              </div>
+              <span class="chip" [class]="tx.statut==='valide' ? 'success' : tx.statut==='en_cours' ? 'warn' : 'danger'">
+                {{ tx.statut | uppercase }}
+              </span>
+            </div>
+          </div>
+        }
+        @if (txService.transactions().length === 0) {
+          <div class="empty-state">
+            <span>📭</span><p>Aucune transaction pour l'instant</p>
+          </div>
+        }
+      }
+    </div>
+
+    <!-- Colonne droite -->
+    <div class="right-col">
+
+      <!-- Accès rapides -->
+      <div class="dc-card">
+        <div class="dc-card-title">Accès rapides</div>
+        <div class="dc-card-sub">Opérations fréquentes</div>
+        <div class="quick-btns">
+          <a routerLink="/transactions/envoi"   class="btn-quick gold">➡️ Envoyer</a>
+          <a routerLink="/transactions/depot"   class="btn-quick teal">⬇️ Déposer</a>
+          <a routerLink="/transactions/retrait" class="btn-quick ghost">⬆️ Retirer</a>
+        </div>
+      </div>
+
+      <!-- Mini graphique -->
+      <div class="dc-card">
+        <div class="dc-card-title">Activité mensuelle</div>
+        <div class="dc-card-sub">Flux FCFA — décembre 2025</div>
+        <div class="chart-legend">
+          <span class="success-text">▲ 180k entrées</span>
+          <span class="danger-text">▼ 48k sorties</span>
+        </div>
+        <div class="mini-chart">
+          @for (h of chartBars; track h) {
+            <div class="mini-bar" [style.height.%]="h"></div>
+          }
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

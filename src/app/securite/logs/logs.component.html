@@ -1,0 +1,70 @@
+<!-- src/app/securite/logs/logs.component.html -->
+<div class="page">
+  <div class="section-header">
+    <h1 class="section-title">Journaux de sécurité</h1>
+    <p class="section-sub">Tous les événements tracés par DirectCash</p>
+  </div>
+
+  <div class="main-grid">
+    <!-- Feed -->
+    <div class="dc-card">
+      <div class="card-head">
+        <div>
+          <div class="dc-card-title">Flux en temps réel <span class="live-dot">●</span></div>
+        </div>
+        <div class="head-actions">
+          <button class="btn-sm ghost" (click)="simuler()">+ Événement</button>
+          <button class="btn-sm ghost" (click)="logService.chargerLogs().subscribe()">↻ Actualiser</button>
+        </div>
+      </div>
+
+      <!-- Filtres type -->
+      <div class="filtres-types">
+        <button class="pill" [class.active-gold]="filtre()===''"      (click)="filtre.set('')">Tout</button>
+        <button class="pill" [class.active-blue]="filtre()==='AUTH'"  (click)="filtre.set('AUTH')">AUTH</button>
+        <button class="pill" [class.active-teal]="filtre()==='TXN'"   (click)="filtre.set('TXN')">TXN</button>
+        <button class="pill" [class.active-warn]="filtre()==='WARN'"  (click)="filtre.set('WARN')">WARN</button>
+        <button class="pill" [class.active-red]="filtre()==='BLOCK'"  (click)="filtre.set('BLOCK')">BLOCK</button>
+      </div>
+
+      <div class="log-feed">
+        @if (logService.loading()) {
+          @for (i of [1,2,3,4]; track i) {
+            <div class="skeleton-log"></div>
+          }
+        } @else {
+          @for (log of logsFiltres(); track log.id) {
+            <div class="log-entry" [class]="logClass(log.type)">
+              <span class="log-ts">{{ log.created_at | date:'HH:mm:ss' }}</span>
+              <span class="log-badge" [class]="logClass(log.type)">{{ log.type }}</span>
+              <span class="log-msg">{{ log.message }}</span>
+              @if (log.ip) { <span class="log-ip">{{ log.ip }}</span> }
+            </div>
+          }
+          @if (logsFiltres().length === 0) {
+            <div class="empty-log">📋 Aucun événement</div>
+          }
+        }
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-col">
+      <div class="stat-card success">
+        <div class="stat-ico">✅</div>
+        <div class="stat-label">Événements OK</div>
+        <div class="stat-val success-text">{{ stats().ok }}</div>
+      </div>
+      <div class="stat-card danger">
+        <div class="stat-ico">🚫</div>
+        <div class="stat-label">Attaques bloquées</div>
+        <div class="stat-val danger-text">{{ stats().block }}</div>
+      </div>
+      <div class="stat-card warn">
+        <div class="stat-ico">⚠️</div>
+        <div class="stat-label">Avertissements</div>
+        <div class="stat-val warn-text">{{ stats().warn }}</div>
+      </div>
+    </div>
+  </div>
+</div>

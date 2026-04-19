@@ -1,0 +1,104 @@
+<!-- src/app/auth/register/register.component.html -->
+<div class="auth-shell">
+  <div class="auth-glow"></div>
+  <div class="auth-card wide">
+
+    <div class="auth-logo">
+      <div class="logo-icon">💳</div>
+      <div>
+        <div class="logo-wordmark">Direct<span>Cash</span></div>
+        <div class="logo-sub">SECURE PAYMENT PLATFORM</div>
+      </div>
+    </div>
+
+    <h1 class="auth-title">Créer un compte</h1>
+    <p class="auth-subtitle">Rejoignez DirectCash — paiements sécurisés au Cameroun</p>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+      <div class="row-2col">
+        <div class="field-group">
+          <label class="dc-label">Nom</label>
+          <input class="dc-input" formControlName="nom"
+            [class.input-error]="isInvalid('nom')" placeholder="NOM">
+          @if (isInvalid('nom')) { <span class="field-error">Requis</span> }
+        </div>
+        <div class="field-group">
+          <label class="dc-label">Prénom</label>
+          <input class="dc-input" formControlName="prenom"
+            [class.input-error]="isInvalid('prenom')" placeholder="Prénom">
+          @if (isInvalid('prenom')) { <span class="field-error">Requis</span> }
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="dc-label">Email</label>
+        <input class="dc-input" formControlName="email" type="email"
+          [class.input-error]="isInvalid('email')" placeholder="jean@directcash.cm">
+        @if (isInvalid('email')) { <span class="field-error">Email valide requis</span> }
+      </div>
+
+      <div class="field-group">
+        <label class="dc-label">Téléphone</label>
+        <input class="dc-input" formControlName="telephone"
+          [class.input-error]="isInvalid('telephone')" placeholder="+237 6XX XXX XXX">
+        @if (isInvalid('telephone')) { <span class="field-error">Format +237XXXXXXXXX requis</span> }
+      </div>
+
+      <div class="row-2col">
+        <div class="field-group">
+          <label class="dc-label">Mot de passe</label>
+          <input class="dc-input" formControlName="mot_de_passe" type="password"
+            [class.input-error]="isInvalid('mot_de_passe')" placeholder="••••••••">
+          @if (isInvalid('mot_de_passe')) { <span class="field-error">8 caractères min.</span> }
+        </div>
+        <div class="field-group">
+          <label class="dc-label">Confirmer</label>
+          <input class="dc-input" formControlName="confirmation" type="password"
+            [class.input-error]="form.errors?.['mismatch'] && form.get('confirmation')?.touched"
+            placeholder="••••••••">
+          @if (form.errors?.['mismatch'] && form.get('confirmation')?.touched) {
+            <span class="field-error">Mots de passe différents</span>
+          }
+        </div>
+      </div>
+
+      @if (form.get('mot_de_passe')?.value) {
+        <div class="pwd-strength">
+          <div class="progress-track">
+            <div class="progress-fill"
+              [style.width]="pwdStrength() + '%'"
+              [class.weak]="pwdStrength() < 40"
+              [class.medium]="pwdStrength() >= 40 && pwdStrength() < 75"
+              [class.strong]="pwdStrength() >= 75"></div>
+          </div>
+          <span class="strength-label">{{ pwdLabel() }}</span>
+        </div>
+      }
+
+      <div class="field-group">
+        <label class="dc-label">Type de compte</label>
+        <select class="dc-select" formControlName="type_compte">
+          <option value="client">Client particulier</option>
+          <option value="entreprise">Entreprise</option>
+          <option value="marchand">Marchand</option>
+        </select>
+      </div>
+
+      @if (erreur()) {
+        <div class="dc-alert danger"><span>⚠️</span><span>{{ erreur() }}</span></div>
+      }
+
+      <button type="submit" class="btn-submit" [disabled]="loading() || form.invalid">
+        @if (loading()) { <span class="spinner"></span> Création… }
+        @else { ✨ Créer mon compte }
+      </button>
+    </form>
+
+    <div class="auth-divider"></div>
+    <p class="auth-footer">
+      Déjà un compte ?
+      <a routerLink="/auth/login" class="link-gold">Se connecter</a>
+    </p>
+  </div>
+</div>

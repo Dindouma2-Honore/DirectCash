@@ -1,0 +1,91 @@
+<!-- src/app/transactions/depot/depot.component.html -->
+<div class="page">
+  <div class="section-header">
+    <h1 class="section-title">Dépôt</h1>
+    <p class="section-sub">Alimentez votre compte DirectCash</p>
+  </div>
+
+  <div class="two-col">
+    <!-- Formulaire -->
+    <div class="dc-card">
+      <div class="dc-card-title">Nouveau dépôt</div>
+      <div class="dc-card-sub">Solde actuel :
+        <strong class="gold-text">{{ compte.compte()?.solde | number:'1.0-0':'fr-FR' }} FCFA</strong>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+        <div class="field-group">
+          <label class="dc-label">Montant (FCFA)</label>
+          <div class="input-wrap">
+            <span class="input-pfx">₣</span>
+            <input class="dc-input has-pfx" formControlName="montant" type="number"
+              min="500" step="500" placeholder="0"
+              [class.input-error]="isInvalid('montant')"
+              (input)="updatePreview()">
+          </div>
+          @if (isInvalid('montant')) {
+            <span class="field-error">Minimum 500 FCFA requis</span>
+          }
+          <span class="field-hint">Min : 500 FCFA — Max : 2 000 000 FCFA</span>
+        </div>
+
+        <div class="field-group">
+          <label class="dc-label">Source</label>
+          <select class="dc-select" formControlName="source">
+            <option value="orange_money">Orange Money</option>
+            <option value="mtn_momo">MTN MoMo</option>
+            <option value="virement">Virement bancaire</option>
+            <option value="agence">Dépôt agence</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label class="dc-label">Référence externe (optionnel)</label>
+          <input class="dc-input" formControlName="reference_externe" placeholder="Ex : OM-TXN-XXXXXXX">
+        </div>
+
+        <!-- Récapitulatif -->
+        <div class="recap">
+          <div class="recap-row">
+            <span>Montant</span>
+            <span class="mono">{{ montantPreview() | number:'1.0-0':'fr-FR' }} FCFA</span>
+          </div>
+          <div class="recap-row"><span>Frais (0 %)</span><span class="mono">0 FCFA</span></div>
+          <div class="recap-sep"></div>
+          <div class="recap-row total">
+            <span>Total crédité</span>
+            <span class="mono gold-text">{{ montantPreview() | number:'1.0-0':'fr-FR' }} FCFA</span>
+          </div>
+        </div>
+
+        @if (erreur()) { <div class="alert danger"><span>⚠️</span><span>{{ erreur() }}</span></div> }
+        @if (succes()) { <div class="alert success"><span>✅</span><span>{{ succes() }}</span></div> }
+
+        <button type="submit" class="btn-submit teal" [disabled]="form.invalid || loading()">
+          @if (loading()) { <span class="spinner"></span> Traitement… }
+          @else { ⬇️ Confirmer le dépôt }
+        </button>
+      </form>
+    </div>
+
+    <!-- Colonne droite -->
+    <div class="side-col">
+      <div class="dc-card">
+        <div class="dc-card-title">Méthodes acceptées</div>
+        <div class="methodes-list">
+          @for (m of methodes; track m.nom) {
+            <div class="methode-row">
+              <span class="methode-ico">{{ m.icone }}</span>
+              <div class="methode-info">
+                <strong>{{ m.nom }}</strong>
+                <span class="methode-meta">{{ m.delai }} · {{ m.frais }}</span>
+              </div>
+              <span class="badge-ok">ACTIF</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

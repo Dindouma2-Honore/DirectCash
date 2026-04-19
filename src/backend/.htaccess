@@ -1,0 +1,26 @@
+# directcash/backend/.htaccess
+# Forcer les headers CORS au niveau Apache (avant même que PHP soit appelé)
+
+<IfModule mod_headers.c>
+    # Autoriser localhost:4200 (Angular dev server)
+    SetEnvIf Origin "^http://(localhost|127\.0\.0\.1)(:\d+)?$" CORS_ORIGIN=$0
+    Header always set Access-Control-Allow-Origin "%{CORS_ORIGIN}e" env=CORS_ORIGIN
+    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Request-ID, X-Client"
+    Header always set Access-Control-Allow-Credentials "true"
+    Header always set Access-Control-Max-Age "86400"
+</IfModule>
+
+# Répondre 200 aux preflight OPTIONS sans passer par PHP
+RewriteEngine On
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule ^(.*)$ $1 [R=200,L]
+
+# Sécurité
+<FilesMatch "\.(env|log|sql|json|md|gitignore)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Masquer les erreurs serveur en production
+# ServerSignature Off

@@ -1,0 +1,138 @@
+<div class="page">
+  <div class="section-header">
+    <h1 class="section-title">Gestion des utilisateurs</h1>
+    <p class="section-sub">Administration des comptes DirectCash</p>
+  </div>
+
+  <div class="dc-card">
+    <div class="filters-bar">
+      <input class="dc-input" [(ngModel)]="recherche" placeholder="🔍 Rechercher…">
+      <select class="dc-select" [(ngModel)]="filtreRole">
+        <option value="">Tous rôles</option>
+        <option value="client">Client</option>
+        <option value="gestionnaire">Gestionnaire</option>
+        <option value="admin">Admin</option>
+      </select>
+      <select class="dc-select" [(ngModel)]="filtreStatut">
+        <option value="">Tous statuts</option>
+        <option value="actif">Actif</option>
+        <option value="verrouille">Verrouillé</option>
+        <option value="suspendu">Suspendu</option>
+      </select>
+      <button class="btn-add" (click)="showModal.set(true)">+ Nouvel utilisateur</button>
+    </div>
+
+    <div class="table-wrap">
+      <table class="dc-table">
+        <thead>
+          <tr>
+            <th>Utilisateur</th>
+            <th>N° Compte</th>
+            <th>Rôle</th>
+            <th>Solde</th>
+            <th>Statut</th>
+            <th>Dernière connexion</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (loading()) {
+            @for (i of [1,2,3,4]; track i) {
+              <tr>
+                @for (j of [1,2,3,4,5,6,7]; track j) {
+                  <td><div class="skeleton-cell"></div></td>
+                }
+              </tr>
+            }
+          } @else {
+            @for (u of usersFiltres(); track u.id) {
+              <tr>
+                <td>
+                  <div class="user-cell">
+                    <div class="avatar-sm" [class]="avatarColor(u.role)">
+                      {{ u.nom.charAt(0) }}{{ u.prenom.charAt(0) }}
+                    </div>
+                    <div class="user-info">
+                      <div class="user-name">{{ u.nom }} {{ u.prenom }}</div>
+                      <div class="user-email">{{ u.email }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="mono compte-col">{{ u.compte }}</td>
+                <td><span class="chip" [class]="roleClass(u.role)">{{ u.role | uppercase }}</span></td>
+                <td class="mono" [class.pos]="u.solde > 0" [class.muted]="u.solde === 0">
+                  {{ u.solde | number:'1.0-0':'fr-FR' }} F
+                </td>
+                <td><span class="chip" [class]="statutClass(u.statut)">{{ u.statut | uppercase }}</span></td>
+                <td class="mono muted last-login">{{ u.last_login || '—' }}</td>
+                <td>
+                  <div class="actions-cell">
+                    @if (u.statut === 'verrouille') {
+                      <button class="btn-action teal" (click)="deverrouiller(u)" title="Déverrouiller">🔓</button>
+                    } @else {
+                      <button class="btn-action ghost" (click)="verrouiller(u)" title="Verrouiller">🔒</button>
+                    }
+                    <button class="btn-action danger" (click)="suspendre(u)" title="Suspendre">⛔</button>
+                  </div>
+                </td>
+              </tr>
+            }
+            @if (usersFiltres().length === 0) {
+              <tr><td colspan="7" class="empty-cell">👥 Aucun utilisateur trouvé</td></tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+@if (showModal()) {
+  <div class="modal-overlay" (click)="showModal.set(false)">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-title">Nouvel utilisateur</div>
+      <div class="modal-sub">Créer un compte DirectCash</div>
+      <form [formGroup]="addForm" (ngSubmit)="creerUser()">
+        <div class="row-2col">
+          <div class="field-group">
+            <label class="dc-label">Nom</label>
+            <input class="dc-input" formControlName="nom" placeholder="NOM"
+              [class.input-error]="isInvalid('nom')">
+            @if (isInvalid('nom')) { <span class="field-error">Requis</span> }
+          </div>
+          <div class="field-group">
+            <label class="dc-label">Prénom</label>
+            <input class="dc-input" formControlName="prenom" placeholder="Prénom"
+              [class.input-error]="isInvalid('prenom')">
+            @if (isInvalid('prenom')) { <span class="field-error">Requis</span> }
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="dc-label">Email</label>
+          <input class="dc-input" formControlName="email" type="email" placeholder="email@directcash.cm"
+            [class.input-error]="isInvalid('email')">
+          @if (isInvalid('email')) { <span class="field-error">Email valide requis</span> }
+        </div>
+        <div class="field-group">
+          <label class="dc-label">Téléphone</label>
+          <input class="dc-input" formControlName="telephone" placeholder="+237 6XX XXX XXX">
+        </div>
+        <div class="field-group">
+          <label class="dc-label">Rôle</label>
+          <select class="dc-select" formControlName="role">
+            <option value="client">Client</option>
+            <option value="gestionnaire">Gestionnaire</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="btn-submit gold" [disabled]="addForm.invalid || loadingModal()">
+            @if (loadingModal()) { <span class="spinner"></span> Création… }
+            @else { ✅ Créer }
+          </button>
+          <button type="button" class="btn-submit ghost" (click)="showModal.set(false)">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
