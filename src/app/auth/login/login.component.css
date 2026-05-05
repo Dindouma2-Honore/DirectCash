@@ -1,36 +1,40 @@
 /* src/app/auth/login/login.component.css */
 .auth-shell {
-  min-height: 100vh; background: #07090f;
+  min-height: 100vh; background: white;
   display: flex; align-items: center; justify-content: center;
   padding: 1.5rem; position: relative; overflow: hidden;
 }
 .auth-glow {
   position: absolute; top: -200px; left: 50%;
   transform: translateX(-50%);
+
   width: 600px; height: 600px; border-radius: 50%;
   background: radial-gradient(circle, rgba(232,184,75,.07) 0%, transparent 65%);
   pointer-events: none;
 }
 .auth-card {
-  background: #111827; border: 1px solid #243347;
+  background: #e6ebf1; 
+  border:1px solid #c8ccd1; 
   border-radius: 20px; padding: 2.25rem;
+  box-shadow: 15px 15px 30px  #c8ccd1,
+    -15px -15px 30px #fff;
   width: 100%; max-width: 420px; position: relative; z-index: 1;
 }
 .auth-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 1.75rem; }
 .logo-icon {
   width: 36px; height: 36px;
-  background: linear-gradient(135deg, #e8b84b 0%, #f5a623 100%);
+  
   border-radius: 8px; display: flex; align-items: center;
   justify-content: center; font-size: 18px;
 }
-.logo-wordmark { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800; color: #e8eaf0; }
-.logo-wordmark span { color: #e8b84b; }
+.logo-wordmark { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800; color: skyblue; }
+.logo-wordmark span { color: rgb(3, 3, 81); }
 .logo-sub { font-size: 9px; color: #4a5568; font-family: 'JetBrains Mono', monospace; letter-spacing: .5px; }
-.auth-title    { font-family: 'Syne', sans-serif; font-size: 1.55rem; font-weight: 800; letter-spacing: -1px; color: #e8eaf0; margin-bottom: .3rem; }
+.auth-title    { font-family: 'Syne', sans-serif; font-size: 1.55rem; font-weight: 800; letter-spacing: -1px; color: black; margin-bottom: .3rem; }
 .auth-subtitle { font-size: 13px; color: #4a5568; margin-bottom: 1.5rem; }
 .auth-divider  { height: 1px; background: #1c2a3e; margin: 1.25rem 0; }
 .auth-footer   { text-align: center; font-size: 13px; color: #4a5568; }
-.link-gold     { color: #e8b84b; font-weight: 600; }
+.link-gold     { color: blue; font-weight: 600; }
 
 /* Fields */
 .field-group  { margin-bottom: 1rem; }
@@ -43,12 +47,16 @@
 .input-icon   { position: absolute; left: .875rem; font-size: 14px; color: #4a5568; pointer-events: none; }
 .input-eye    { position: absolute; right: .75rem; background: none; border: none; cursor: pointer; color: #4a5568; padding: 0; font-size: 14px; }
 .dc-input {
-  width: 100%; background: #0d1117; border: 1px solid #1c2a3e;
+  width: 100%;border: 1px #e6ebf1 solid;
+  background: #e6ebf1;
+    font-size: 15px;
+    box-shadow: inset 6px 6px 10px #c8ccd1,
+    inset -6px -6px 10px #ffffff;
   border-radius: 8px; padding: .6rem .875rem .6rem 2.5rem;
-  color: #e8eaf0; font-family: 'DM Sans', sans-serif;
+  color: black; font-family: 'DM Sans', sans-serif;
   font-size: 14px; outline: none; transition: all 0.18s;
 }
-.dc-input:focus { border-color: #e8b84b; box-shadow: 0 0 0 3px rgba(232,184,75,.12); }
+.dc-input:focus { border-color: green; box-shadow: 0 0 0 3px rgba(232,184,75,.12); }
 .dc-input::placeholder { color: #4a5568; }
 .dc-input.input-error { border-color: #ff5252; box-shadow: 0 0 0 3px rgba(255,82,82,.12); }
 .field-error { font-size: 11.5px; color: #ff5252; margin-top: 4px; display: block; }
@@ -69,14 +77,14 @@
 
 /* Submit */
 .btn-submit {
-  width: 100%; background: #e8b84b; color: #07090f;
+  width: 100%; background:blue; color: #07090f;
   border: none; padding: .72rem 1.25rem;
   border-radius: 10px; font-weight: 700; font-size: 15px;
   cursor: pointer; transition: all 0.18s; display: flex;
   align-items: center; justify-content: center; gap: 8px;
   font-family: 'DM Sans', sans-serif;
 }
-.btn-submit:hover:not(:disabled) { background: #c99a30; transform: translateY(-1px); }
+.btn-submit:hover:not(:disabled) { background: green; transform: translateY(-1px); }
 .btn-submit:disabled { opacity: .5; cursor: not-allowed; }
 
 /* Spinner */

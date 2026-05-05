@@ -18,7 +18,7 @@ define('DB_USER',            getenv('DB_USER')       ?: 'root');
 define('DB_PASS',            getenv('DB_PASS')       ?: '');
 define('DB_CHARSET',         'utf8mb4');
 define('JWT_SECRET',         getenv('JWT_SECRET')    ?: 'DC_S3CR3T_K3Y_CHANGE_EN_PROD_2024');
-define('JWT_EXPIRY',         900);
+define('JWT_EXPIRY',         3600);
 define('BCRYPT_COST',        12);
 define('OTP_EXPIRY',         300);
 define('OTP_LENGTH',         6);

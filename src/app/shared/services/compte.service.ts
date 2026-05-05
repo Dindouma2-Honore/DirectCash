@@ -14,10 +14,10 @@ export class CompteService {
   constructor(private http: HttpClient) {}
 
   charger() {
-    return this.http.get<CompteInfo>(`${this.API}/compte.php`).pipe(
-      tap(c => this._compte.set(c))
-    );
-  }
+  return this.http.get<CompteInfo>(`${this.API}/compte.php?action=solde`).pipe(
+    tap(c => this._compte.set(c))
+  );
+}
   majSolde(solde: number) {
     this._compte.update(c => c ? { ...c, solde } : null);
   }

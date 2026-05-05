@@ -1,23 +1,27 @@
 // src/app/shared/services/log.service.ts
 import { Injectable, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { tap } from 'rxjs';
 import { LogEntry, Alerte } from '../models/log.model';
 import { environment } from '../../../environments/environment';
+import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class LogService {
   private readonly API = environment.apiUrl;
-  private _logs    = signal<LogEntry[]>([]);
+  private _logs = signal<LogEntry[]>([]);
   private _alertes = signal<Alerte[]>([]);
   private _loading = signal(false);
 
-  readonly logs    = this._logs.asReadonly();
+  readonly logs = this._logs.asReadonly();
   readonly alertes = this._alertes.asReadonly();
   readonly loading = this._loading.asReadonly();
   readonly alertesActives = () => this._alertes().filter(a => a.statut === 'active');
-
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private auth: AuthService) { }
+  private get headers(): HttpHeaders {
+  const token = localStorage.getItem('dc_token') ?? '';
+  return new HttpHeaders({ Authorization: `Bearer ${token}` });
+}
 
   chargerLogs(type?: string) {
     this._loading.set(true);
@@ -28,11 +32,21 @@ export class LogService {
     );
   }
 
-  chargerAlertes() {
-    return this.http.get<Alerte[]>(`${this.API}/log.php?action=alertes`).pipe(
-      tap(a => this._alertes.set(a))
-    );
-  }
+ chargerAlertes() {
+  return this.http.get<Alerte[]>(
+    `${this.API}/log.php?action=alertes`,
+    { headers: this.headers }
+  ).pipe(
+    tap(alertes => {
+      console.log('Alertes reçues :', alertes); // ← voir dans F12 Console
+      const normalized = alertes.map(a => ({
+        ...a,
+        created_at: a.created_at?.replace(' ', 'T') ?? ''
+      }));
+      this._alertes.set(normalized);
+    })
+  );
+}
 
   resoudre(id: number) {
     return this.http.put(`${this.API}/log.php?action=resoudre&id=${id}`, {}).pipe(

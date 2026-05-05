@@ -6,6 +6,9 @@ export interface User {
   prenom: string;
   email: string;
   telephone: string;
+  photo_url?:string;
+  
+  
   role: 'client' | 'gestionnaire' | 'admin';
   statut: 'actif' | 'suspendu' | 'verrouille';
   solde: number;

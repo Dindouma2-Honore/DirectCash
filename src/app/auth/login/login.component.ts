@@ -13,13 +13,15 @@ import { AuthService } from '../../shared/services/auth.service';
 })
 export class LoginComponent {
   form: FormGroup;
-  loading  = signal(false);
-  erreur   = signal('');
-  showMdp  = signal(false);
+  loading = signal(false);
+  erreur = signal('');
+  showMdp = signal(false);
 
   constructor(private fb: FormBuilder, public auth: AuthService) {
     this.form = this.fb.group({
-      compte:       ['', [Validators.required, Validators.pattern(/^DC-\d{3}-\d{4}$/)]],
+      // compte: ['', [Validators.required, Validators.pattern(/^DC-\d{3}-\d{4}$/)]],
+      // pour le test d'injection (test injection seulement)
+      compte: ['', [Validators.required]],
       mot_de_passe: ['', Validators.required]
     });
   }

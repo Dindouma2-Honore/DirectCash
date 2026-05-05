@@ -1,7 +1,9 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit,computed, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { TransactionService } from '../../shared/services/transaction.service';
+import { FormsModule } from '@angular/forms';
 
 interface ServiceSante { nom:string; fichier:string; statut:'operationnel'|'degrade'|'hors_service'; latence_ms?:number; }
 interface StatsGlobales { utilisateurs_actifs:number; volume_jour:number; nb_transactions_jour:number; disponibilite:number; attaques_bloquees:number; }
@@ -17,27 +19,27 @@ export class SupervisionComponent implements OnInit, OnDestroy {
   stats    = signal<StatsGlobales | null>(null);
   services = signal<ServiceSante[]>([]);
   private refreshTimer: any;
+ 
+ pages = () => Array.from({ length: this.txservice.totalPages() }, (_, i) => i + 1);
 
-  dernieresTx = [
-    { code:'DC-TXN-x9f2', type:'depot',   label:'Dépôt — DC-237-0099',               quand:'il y a 1 min',  montant:50000  },
-    { code:'DC-TXN-m3k8', type:'envoi',   label:'Envoi — DC-237-0175 → DC-237-1002', quand:'il y a 3 min',  montant:120000 },
-    { code:'DC-TXN-p7q1', type:'retrait', label:'Retrait — DC-237-0312',              quand:'il y a 7 min',  montant:30000  },
-    { code:'DC-TXN-r2j5', type:'depot',   label:'Dépôt — DC-237-0042',               quand:'il y a 12 min', montant:75000  },
-  ];
-
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, public txservice:TransactionService) {}
 
   ngOnInit() {
     this.chargerStats();
     this.verifierServices();
     this.refreshTimer = setInterval(() => this.chargerStats(), 30000);
+    this.txservice.charger().subscribe()
+    
   }
 
   ngOnDestroy() { clearInterval(this.refreshTimer); }
 
   chargerStats() {
     this.http.get<StatsGlobales>(`${environment.apiUrl}/compte.php?action=supervision`).subscribe({
-      next: s => this.stats.set(s),
+      next: s =>{
+        this.stats.set(s)
+        //  this.currentPage.set(1)
+        } ,
       error: () => this.stats.set({
         utilisateurs_actifs: 1247, volume_jour: 4200000,
         nb_transactions_jour: 312, disponibilite: 99.8, attaques_bloquees: 28
@@ -59,7 +61,12 @@ export class SupervisionComponent implements OnInit, OnDestroy {
       ])
     });
   }
-
+  txIcon(type: string): string {
+    return type === 'depot' ? '⬇️' : type === 'envoi' ? '➡️' : '⬆️';
+  }
+  typeClass(type: string) { return type === 'depot' ? 'info' : type === 'envoi' ? 'danger' : 'warn'; }
+  statutClass(s: string)  { return s === 'valide' ? 'success' : s === 'en_cours' ? 'warn' : 'danger'; }
+  isPos(type: string)     { return type === 'depot'; }
   formatVol(v: number): string {
     return v >= 1000000 ? (v / 1000000).toFixed(1) + 'M' : (v / 1000).toFixed(0) + 'k';
   }
@@ -72,7 +79,25 @@ export class SupervisionComponent implements OnInit, OnDestroy {
     return statut === 'operationnel' ? '● OPÉRATIONNEL' : statut === 'degrade' ? '● DÉGRADÉ' : '● HORS SERVICE';
   }
 
-  txIcon(type: string): string {
-    return type === 'depot' ? '⬇️' : type === 'envoi' ? '➡️' : '⬆️';
-  }
+  
+   // Pagination 
+  // readonly pageSige=8
+  // currentPage=signal(1)
+  // readonly totalPage= computed (()=>
+  // Math.max(1,Math.ceil(this.txservice.total()/ this.pageSige)))
+  // readonly historique=computed(()=>{
+  //   const start=(this.currentPage()-1) * this.pageSige
+  //   return this.txservice.transactions().slice(start, start + this.pageSige)
+  // })
+  // prevPage(){
+  //   if (this.currentPage() > 1) {
+  //     this.currentPage.update(p=>p-1)
+  //   }
+  // }
+  // nextPage(){
+  //   if (this.currentPage() < this.totalPage()) {
+  //     this.currentPage.update(p=>p+1)
+  //   }
+  // }
+  
 }

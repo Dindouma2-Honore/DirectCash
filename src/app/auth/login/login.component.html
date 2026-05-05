@@ -4,10 +4,10 @@
   <div class="auth-card">
 
     <div class="auth-logo">
-      <div class="logo-icon">💳</div>
+      <div class="logo-icon"><img src="assets/image/001.png" alt="logo" height="36px" width="36px"></div>
       <div>
-        <div class="logo-wordmark">Direct<span>Cash</span></div>
-        <div class="logo-sub">SECURE PAYMENT PLATFORM</div>
+        <div class="logo-wordmark">Mydirect<span>Cash</span></div>
+        <div class="logo-sub">Plateforme de Paiement Securisé</div>
       </div>
     </div>
 
@@ -26,9 +26,9 @@
             placeholder="DC-237-XXXX"
             autocomplete="username">
         </div>
-        @if (isInvalid('compte')) {
+        <!-- @if (isInvalid('compte')) {
           <span class="field-error">Format requis : DC-237-XXXX</span>
-        }
+        } -->
       </div>
 
       <div class="field-group">
@@ -67,7 +67,7 @@
         </div>
       }
 
-      <button type="submit" class="btn-submit" [disabled]="loading() || form.invalid">
+      <button type="submit" class="btn-submit" [disabled]="loading() ">
         @if (loading()) { <span class="spinner"></span> Vérification… }
         @else { 🔐 Se connecter }
       </button>

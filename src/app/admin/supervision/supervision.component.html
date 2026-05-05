@@ -15,10 +15,10 @@
       <div class="kpi-val teal-text">{{ formatVol(stats()?.volume_jour ?? 0) }}</div>
       <div class="kpi-meta">FCFA · {{ stats()?.nb_transactions_jour }} tx</div>
     </div>
-    <div class="kpi-card success"><span class="kpi-ico">✅</span>
+    <!-- <div class="kpi-card success"><span class="kpi-ico">✅</span>
       <div class="kpi-label">Disponibilité SLA</div>
       <div class="kpi-val success-text">{{ stats()?.disponibilite }}%</div>
-    </div>
+    </div> -->
     <div class="kpi-card danger"><span class="kpi-ico">🚫</span>
       <div class="kpi-label">Attaques bloquées</div>
       <div class="kpi-val danger-text">{{ stats()?.attaques_bloquees }}</div>
@@ -27,7 +27,7 @@
   </div>
 
   <div class="main-grid">
-    <div class="dc-card">
+    <!-- <div class="dc-card">
       <div class="card-head">
         <div class="dc-card-title">🩺 Santé des services PHP</div>
         <button class="btn-refresh" (click)="verifierServices()">↻ Vérifier</button>
@@ -49,23 +49,72 @@
           @for (i of [1,2,3,4,5,6,7]; track i) { <div class="skeleton-service"></div> }
         }
       </div>
-    </div>
+    </div> -->
 
     <div class="dc-card">
-      <div class="dc-card-title">Dernières transactions</div>
-      <div class="dc-card-sub">Toute la plateforme — temps réel</div>
-      @for (tx of dernieresTx; track tx.code) {
-        <div class="tx-item">
-          <div class="tx-icon" [class]="tx.type">{{ txIcon(tx.type) }}</div>
-          <div class="tx-body">
-            <div class="tx-label">{{ tx.label }}</div>
-            <div class="tx-meta mono">{{ tx.code }} · {{ tx.quand }}</div>
-          </div>
-          <div class="tx-amount" [class.pos]="tx.type === 'depot'" [class.neg]="tx.type !== 'depot'">
-            {{ tx.type === 'depot' ? '+' : '-' }}{{ tx.montant | number:'1.0-0':'fr-FR' }} F
-          </div>
+      <div class="table-wrap">
+        <div class="dc-card-title">Dernières transactions</div>
+        <div class="dc-card-sub">Toute la plateforme — temps réel</div>
+        <table class="dc-table">
+
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Type</th>
+              <th>Compte source</th>
+              <th>Compte destination</th>
+              <th>Montant</th>
+              <th>Date</th>
+              <th>Statut</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (tx of txservice.transactions(); track tx.code) {
+            <!-- <tr>
+
+            <td class="tx-icon" [class]="tx.type">{{ txIcon(tx.type) }}</td>
+            <td>{{ tx.label }}</td>
+            <td> {{ tx.code }} </td>
+            <td class="tx-meta mono"> {{ tx.quand }}</td>
+            <td class="tx-amount" [class.pos]="tx.type === 'depot'" [class.neg]="tx.type !== 'depot'">{{ tx.type ===
+              'depot' ? '+' : '-' }}{{ tx.montant | number:'1.0-0':'fr-FR' }} F</td>
+          </tr> -->
+            <tr>
+              <td class="mono code">{{ tx.code }}</td>
+              <td>
+                <span class="chip" [class]="typeClass(tx.type)">{{ tx.type | uppercase }}</span>
+              </td>
+              <td>{{tx.compte_source }} </td>
+              <td>{{tx.compte_dest}} </td>
+              <!-- <td class="contrepartie">{{ tx.type === 'depot' ? tx.compte_source : (tx.compte_dest || '—') }}</td> -->
+              <td class="montant" [class.pos]="isPos(tx.type)" [class.neg]="!isPos(tx.type)">
+                {{ isPos(tx.type) ? '+' : '-' }}{{ tx.montant | number:'1.0-0':'fr-FR' }} FCFA
+              </td>
+              <td class="mono date-col">{{ tx.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>
+                <span class="chip" [class]="statutClass(tx.statut)">{{ tx.statut | uppercase }}</span>
+              </td>
+              <!-- <td>
+                  <button class="btn-icon" (click)="ouvrirDetail(tx)">👁</button>
+                </td> -->
+            </tr>
+            }
+          </tbody>
+
+        </table>
+
+      </div>
+      <!-- Pagination -->
+      <div class="pagination">
+        <span class="pag-info">{{ txservice.total() }} transaction(s)</span>
+        <div class="pag-btns">
+          @for (p of pages(); track p) {
+          <button class="btn-page" [class.active]="p === txservice.filters().page" (click)="txservice.changerPage(p)">{{
+            p }}</button>
+          }
         </div>
-      }
+      </div>
     </div>
   </div>
 </div>

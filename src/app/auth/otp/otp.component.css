@@ -1,35 +1,42 @@
 /* src/app/auth/otp/otp.component.css */
-.auth-shell { min-height:100vh; background:#07090f; display:flex; align-items:center; justify-content:center; padding:1.5rem; position:relative; }
+.auth-shell { min-height:100vh; background:#e6ebf1; display:flex; align-items:center; justify-content:center; padding:1.5rem; position:relative; }
 .auth-glow  { position:absolute; top:-200px; left:50%; transform:translateX(-50%); width:600px; height:600px; border-radius:50%; background:radial-gradient(circle,rgba(232,184,75,.07) 0%,transparent 65%); pointer-events:none; }
-.auth-card  { background:#111827; border:1px solid #243347; border-radius:20px; padding:2.25rem; width:100%; max-width:420px; position:relative; z-index:1; }
+.auth-card  { background:#c8ccd1; 
+  border:1px solid #e6ebf1; 
+  border-radius:20px; 
+  padding:2.25rem; width:100%; 
+  max-width:420px; position:relative; 
+  z-index:1;
+   box-shadow: 15px 15px 30px  #c8ccd1,
+    -15px -15px 30px #fff; }
 .otp-icon   { font-size:3.5rem; margin-bottom:1rem; }
-.auth-title    { font-family:'Syne',sans-serif; font-size:1.5rem; font-weight:800; letter-spacing:-1px; color:#e8eaf0; margin-bottom:.3rem; }
+.auth-title    { font-family:'Syne',sans-serif; font-size:1.5rem; font-weight:800; letter-spacing:-1px; color:black; margin-bottom:.3rem; }
 .auth-subtitle { font-size:13px; color:#4a5568; margin-bottom:1.75rem; line-height:1.6; }
-.tel           { color:#e8eaf0; font-weight:600; }
+.tel           { color:black; font-weight:600; }
 
 .otp-wrap  { display:flex; gap:8px; justify-content:center; margin-bottom:1.25rem; }
 .otp-digit {
-  width:50px; height:58px; background:#0d1117;
+  width:50px; height:58px; background:white;
   border:2px solid #1c2a3e; border-radius:12px;
   font-size:1.5rem; font-weight:700; font-family:'JetBrains Mono',monospace;
-  color:#e8b84b; text-align:center; outline:none; transition:all 0.18s;
+  color:black; text-align:center; outline:none; transition:all 0.18s;
 }
-.otp-digit:focus { border-color:#e8b84b; background:rgba(232,184,75,.08); box-shadow:0 0 0 3px rgba(232,184,75,.12); }
+.otp-digit:focus { border-color:blue; background:rgba(232,184,75,.08); box-shadow:0 0 0 3px rgba(232,184,75,.12); }
 .otp-digit.otp-error { border-color:#ff5252; }
 
 .otp-timer { font-size:12.5px; color:#4a5568; margin-bottom:1rem; }
-.countdown { color:#ffb74d; font-family:'JetBrains Mono',monospace; }
+.countdown { color:red; font-family:'JetBrains Mono',monospace; }
 .expired   { color:#ff5252; }
 
 .dc-alert { border-radius:8px; padding:.75rem 1rem; font-size:13px; display:flex; align-items:center; gap:8px; margin-bottom:1rem; text-align:left; }
 .dc-alert.danger { background:rgba(255,82,82,.08); border:1px solid rgba(255,82,82,.2); color:#ff5252; }
 
-.btn-submit { width:100%; background:#e8b84b; color:#07090f; border:none; padding:.72rem 1.25rem; border-radius:10px; font-weight:700; font-size:15px; cursor:pointer; transition:all 0.18s; display:flex; align-items:center; justify-content:center; gap:8px; font-family:'DM Sans',sans-serif; margin-bottom:1rem; }
+.btn-submit { width:100%; background:green; color:#07090f; border:none; padding:.72rem 1.25rem; border-radius:10px; font-weight:700; font-size:15px; cursor:pointer; transition:all 0.18s; display:flex; align-items:center; justify-content:center; gap:8px; font-family:'DM Sans',sans-serif; margin-bottom:1rem; }
 .btn-submit:hover:not(:disabled) { background:#c99a30; transform:translateY(-1px); }
 .btn-submit:disabled { opacity:.5; cursor:not-allowed; }
 .spinner { width:16px; height:16px; border:2px solid rgba(7,9,15,.3); border-top-color:#07090f; border-radius:50%; animation:spin .7s linear infinite; display:inline-block; }
 @keyframes spin { to { transform:rotate(360deg); } }
 
 .resend-text { font-size:12.5px; color:#4a5568; margin:0; }
-.btn-resend  { background:none; border:none; cursor:pointer; color:#e8b84b; font-size:12.5px; font-weight:600; padding:0; }
+.btn-resend  { background:none; border:none; cursor:pointer; color:blue; font-size:12.5px; font-weight:600; padding:0; }
 .btn-resend:disabled { opacity:.4; cursor:not-allowed; }

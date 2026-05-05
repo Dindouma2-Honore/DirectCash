@@ -1,28 +1,36 @@
-/* src/app/securite/alertes/alertes.component.css */
-.page{color:#e8eaf0}.section-header{margin-bottom:1.5rem}
-.section-title{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;letter-spacing:-.5px;margin-bottom:.2rem}
-.section-sub{font-size:13px;color:#4a5568}
-.alert-banner{border-radius:10px;padding:.75rem 1rem;font-size:13px;display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;border:1px solid}
-.alert-banner.warn{background:rgba(255,183,77,.08);border-color:rgba(255,183,77,.25);color:#ffb74d}
-.alert-banner.success{background:rgba(105,240,174,.08);border-color:rgba(105,240,174,.25);color:#69f0ae}
-.dc-card{background:#111827;border:1px solid #1c2a3e;border-radius:12px;padding:1.25rem}
-.alerte-card{border-radius:12px;padding:1rem;margin-bottom:.75rem;border:1px solid #1c2a3e;transition:opacity .3s}
-.alerte-card.critique{border-color:rgba(255,82,82,.4);background:rgba(255,82,82,.05)}
-.alerte-card.haute{border-color:rgba(255,183,77,.3);background:rgba(255,183,77,.04)}
-.alerte-card.moyenne{border-color:rgba(255,183,77,.2);background:rgba(255,183,77,.03)}
-.alerte-card.resolue{opacity:.5}
-.alerte-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.3rem}
-.alerte-title{font-size:13.5px;font-weight:600;color:#e8eaf0}
-.alerte-meta{font-size:11px;color:#4a5568;font-family:'JetBrains Mono',monospace;margin-bottom:.5rem}
-.alerte-desc{font-size:12.5px;color:#8899aa;margin-bottom:.75rem}
-.alerte-actions{display:flex;gap:.5rem}
-.chip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:600;font-family:'JetBrains Mono',monospace}
-.chip.success{background:rgba(105,240,174,.12);color:#69f0ae;border:1px solid rgba(105,240,174,.25)}
-.chip.danger{background:rgba(255,82,82,.12);color:#ff5252;border:1px solid rgba(255,82,82,.25)}
-.chip.warn{background:rgba(255,183,77,.12);color:#ffb74d;border:1px solid rgba(255,183,77,.25)}
-.btn-sm{padding:.38rem .85rem;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;border:none;transition:all .18s;font-family:'DM Sans',sans-serif}
-.btn-sm.gold{background:#e8b84b;color:#07090f}.btn-sm.gold:hover{background:#c99a30}
-.btn-sm.ghost{background:#141e2e;color:#8899aa;border:1px solid #1c2a3e}.btn-sm.ghost:hover{color:#e8eaf0;border-color:#243347}
-.skeleton-alerte{height:90px;background:linear-gradient(90deg,#1c2a3e 25%,#243347 50%,#1c2a3e 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:12px;margin-bottom:.75rem}
-@keyframes shimmer{to{background-position:-200% 0}}
-.empty-state{text-align:center;padding:2.5rem;color:#4a5568;font-size:13px}
+.page { color: black }
+.section-header { margin-bottom: 1.5rem }
+.section-title { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; letter-spacing: -.5px; margin-bottom: .2rem }
+.section-sub { font-size: 13px; color: #4a5568 }
+.alert-banner { border-radius: 10px; padding: .75rem 1rem; font-size: 13px; display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; border: 1px solid }
+.alert-banner.warn { background: #fff8e1; border-color: rgba(255,183,77,.4); color: #7a5c00 }
+.alert-banner.success { background: rgba(105,240,174,.08); border-color: rgba(105,240,174,.25); color: #1a6640 }
+.dc-card { background: white; border: 1px solid #1c2a3e; border-radius: 12px; padding: 1.25rem }
+
+
+.alerte-card { border-radius: 12px; padding: 1rem; margin-bottom: .75rem; border-left: 4px solid; transition: opacity .3s; background: #fff }
+.alerte-card.critique { border-color: #ff5252; background: #fff5f5 }
+.alerte-card.haute    { border-color: #ffb74d; background: #fffaf0 }
+.alerte-card.moyenne  { border-color: #ffd54f; background: #fffde7 }
+.alerte-card.resolue  { opacity: .5 }
+
+.alerte-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: .4rem }
+.alerte-title { font-size: 13.5px; font-weight: 600; color: #1a202c }  /* ← noir lisible */
+.alerte-meta { font-size: 11px; color: #4a5568; font-family: 'JetBrains Mono', monospace; margin-bottom: .5rem }
+.alerte-desc { font-size: 12.5px; color: #2d3748; margin-bottom: .75rem; line-height: 1.5 }
+.alerte-actions { display: flex; gap: .5rem }
+
+.chip { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 10.5px; font-weight: 600; font-family: 'JetBrains Mono', monospace }
+.chip.success { background: #c6f6d5; color: #1a6640; border: 1px solid #9ae6b4 }
+.chip.danger  { background: #fed7d7; color: #9b2c2c; border: 1px solid #fc8181 }
+.chip.warn    { background: #fefcbf; color: #7a5c00; border: 1px solid #f6e05e }
+
+.btn-sm { padding: .38rem .85rem; border-radius: 8px; font-size: 12.5px; font-weight: 600; cursor: pointer; border: none; transition: all .18s; font-family: 'DM Sans', sans-serif }
+.btn-sm.gold  { background: #d4a017; color: #fff }
+.btn-sm.gold:hover { background: #b8860b }
+.btn-sm.ghost { background: #f7fafc; color: #4a5568; border: 1px solid #e2e8f0 }
+.btn-sm.ghost:hover { color: #1a202c; border-color: #cbd5e0 }
+
+.skeleton-alerte { height: 90px; background: linear-gradient(90deg, #f0f4f8 25%, #e2e8f0 50%, #f0f4f8 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 12px; margin-bottom: .75rem }
+@keyframes shimmer { to { background-position: -200% 0 } }
+.empty-state { text-align: center; padding: 2.5rem; color: #4a5568; font-size: 13px }

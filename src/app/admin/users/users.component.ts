@@ -37,6 +37,8 @@ export class UsersComponent implements OnInit {
       prenom:    ['', Validators.required],
       email:     ['', [Validators.required, Validators.email]],
       telephone: ['', Validators.required],
+      pin_hash:['',Validators.required],
+      mdp_hash:['',Validators.required],
       role:      ['client']
     });
   }
@@ -75,8 +77,21 @@ export class UsersComponent implements OnInit {
       error: () => { this.setStatut(u.id, 'actif'); this.toast.success(`${u.compte} déverrouillé (démo)`); }
     });
   }
-  verrouiller(u: User) { this.setStatut(u.id, 'verrouille'); this.toast.warn(`${u.compte} verrouillé`); }
-  suspendre(u: User)   { this.setStatut(u.id, 'suspendu');   this.toast.warn(`${u.compte} suspendu`);   }
+ verrouiller(u: User) {
+  this.http.put(`${environment.apiUrl}/auth.php?action=verrouiller&compte=${u.compte}`, {})
+    .subscribe({
+      next: () => { this.setStatut(u.id, 'verrouille'); this.toast.warn(`${u.compte} verrouillé`); },
+      error: () => this.toast.error('Erreur lors du verrouillage.')
+    });
+}
+
+suspendre(u: User) {
+  this.http.put(`${environment.apiUrl}/auth.php?action=suspendre&compte=${u.compte}`, {})
+    .subscribe({
+      next: () => { this.setStatut(u.id, 'suspendu'); this.toast.warn(`${u.compte} suspendu`); },
+      error: () => this.toast.error('Erreur lors de la suspension.')
+    });
+}
 
   private setStatut(id: number, statut: User['statut']) {
     this.users.update(l => l.map(x => x.id === id ? { ...x, statut } : x));

@@ -74,7 +74,7 @@ export class AuthService {
     const u = this._user();
     return u ? `${u.nom.charAt(0)}${u.prenom.charAt(0)}` : '??';
   });
-
+   
   constructor(private http: HttpClient, private router: Router) {
     this.restoreSession();
   }
@@ -240,19 +240,40 @@ export class AuthService {
   }
 
   // ── PRIVÉ : restaurer session au démarrage ──────────────────
-  private restoreSession() {
-    try {
-      const token = localStorage.getItem('dc_token');
-      const raw   = localStorage.getItem('dc_user');
-      if (token && raw) {
-        this._token.set(token);
-        this._user.set(JSON.parse(raw));
-        if (token.startsWith('demo.')) {
-          this._demoMode.set(true);
-        }
+private restoreSession() {
+  try {
+    const token = localStorage.getItem('dc_token');
+    const raw   = localStorage.getItem('dc_user');
+    if (token && raw) {
+      this._token.set(token);
+      this._user.set(JSON.parse(raw));
+      if (token.startsWith('demo.')) {
+        this._demoMode.set(true);
+      } else {
+        
+        setTimeout(() => this.rafraichirProfil(), 0);
       }
-    } catch {
-      this.logout();
     }
+  } catch {
+    this.logout();
   }
+}
+
+
+rafraichirProfil() {
+  this.http.get<any>(`${this.API}/auth.php?action=profil`).subscribe({
+    next: (profil) => {
+      this._user.set(profil);
+      localStorage.setItem('dc_user', JSON.stringify(profil));
+    },
+    error: () => {
+      // Silencieux — on garde le user du localStorage
+    }
+  });
+}
+  //pour le stockage de la photo
+  setUser(user: User) {
+  this._user.set(user);
+  localStorage.setItem('dc_user', JSON.stringify(user));
+}
 }

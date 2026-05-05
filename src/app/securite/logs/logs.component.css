@@ -1,8 +1,8 @@
 /* src/app/securite/logs/logs.component.css */
-.page{color:#e8eaf0}.section-header{margin-bottom:1.5rem}.section-title{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;letter-spacing:-.5px;margin-bottom:.2rem}.section-sub{font-size:13px;color:#4a5568}
+.page{color:black}.section-header{margin-bottom:1.5rem}.section-title{font-family:'Segoe';font-size:1.3rem;font-weight:800;letter-spacing:-.5px;margin-bottom:.2rem}.section-sub{font-size:13px;color:black}
 .main-grid{display:grid;grid-template-columns:1fr 260px;gap:1.25rem;align-items:start}
-.dc-card{background:#111827;border:1px solid #1c2a3e;border-radius:12px;padding:1.25rem}
-.dc-card-title{font-family:'Syne',sans-serif;font-size:.875rem;font-weight:700;color:#e8eaf0;margin-bottom:.2rem}
+.dc-card{background:white;border:1px solid #1c2a3e;border-radius:12px;padding:1.25rem}
+.dc-card-title{font-family:'Segoe';font-size:.875rem;font-weight:700;color:black;margin-bottom:.2rem}
 .live-dot{color:#1de9b6;animation:pulseDot 1.5s infinite;margin-left:6px}
 @keyframes pulseDot{0%,100%{opacity:1}50%{opacity:.3}}
 .card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem}
@@ -19,11 +19,11 @@
 .pill.active-red{background:rgba(255,82,82,.12);color:#ff5252;border-color:rgba(255,82,82,.3)}
 .log-feed{max-height:420px;overflow-y:auto}
 .log-entry{display:flex;align-items:flex-start;gap:.6rem;padding:.5rem .6rem;border-radius:6px;margin-bottom:3px;font-size:12.5px;border-left:3px solid transparent}
-.log-entry.ok{background:rgba(105,240,174,.06);border-color:#69f0ae}
-.log-entry.err{background:rgba(255,82,82,.06);border-color:#ff5252}
-.log-entry.warn{background:rgba(255,183,77,.06);border-color:#ffb74d}
-.log-entry.info{background:rgba(79,195,247,.06);border-color:#4fc3f7}
-.log-entry.block{background:rgba(255,82,82,.1);border-color:#ff5252}
+.log-entry.ok{background:rgba(105,240,174);border-color:#69f0ae; color:black }
+.log-entry.err{background:rgba(255,82,82);border-color:#ff5252; color:black }
+.log-entry.warn{background:rgba(255,183,77);border-color:#ffb74d; color:black }
+.log-entry.info{background:rgba(79,195,247);border-color:#4fc3f7; color:black }
+.log-entry.block{background:red;border-color:#ff5252; color:black}
 .log-ts{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:#4a5568;flex-shrink:0;min-width:58px}
 .log-badge{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:4px;flex-shrink:0;letter-spacing:.5px}
 .log-badge.ok{background:#69f0ae;color:#07090f}
@@ -37,7 +37,7 @@
 .skeleton-log{height:34px;background:linear-gradient(90deg,#1c2a3e 25%,#243347 50%,#1c2a3e 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px;margin-bottom:4px}
 @keyframes shimmer{to{background-position:-200% 0}}
 .stats-col{display:flex;flex-direction:column;gap:.75rem}
-.stat-card{background:#111827;border:1px solid #1c2a3e;border-radius:12px;padding:1.1rem;position:relative;overflow:hidden}
+.stat-card{background:white;color: black; border:1px solid #1c2a3e;border-radius:12px;padding:1.1rem;position:relative;overflow:hidden}
 .stat-ico{position:absolute;top:1rem;right:1rem;font-size:1.3rem;opacity:.5}
 .stat-label{font-size:10.5px;color:#4a5568;text-transform:uppercase;letter-spacing:1px;font-weight:600;font-family:'Syne',sans-serif;margin-bottom:.4rem}
 .stat-val{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;letter-spacing:-1px}

@@ -26,7 +26,7 @@
     <!-- Bouton notifications -->
     <div class="topbar-btn" [class.has-notif]="notifService.nonLues() > 0"
          (click)="notifOpen.set(!notifOpen())">
-      🔔
+      <i class="fa-sharp fa-regular fa-bell"></i>
       @if (notifService.nonLues() > 0) {
         <span class="notif-count">{{ notifService.nonLues() }}</span>
       }
@@ -37,7 +37,7 @@
       <div class="notif-overlay" (click)="fermerNotif()"></div>
       <div class="notif-drawer">
         <div class="notif-header">
-          <span class="notif-header-title">🔔 Notifications</span>
+          <span class="notif-header-title"><i class="fa-sharp fa-regular fa-bell"></i> Notifications</span>
           <div class="notif-header-actions">
             @if (notifService.nonLues() > 0) {
               <button class="btn-tout-lire" (click)="marquerToutLu()">Tout lire</button>

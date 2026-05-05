@@ -23,7 +23,7 @@
         <button class="pill" [class.active-gold]="filtre()===''"      (click)="filtre.set('')">Tout</button>
         <button class="pill" [class.active-blue]="filtre()==='AUTH'"  (click)="filtre.set('AUTH')">AUTH</button>
         <button class="pill" [class.active-teal]="filtre()==='TXN'"   (click)="filtre.set('TXN')">TXN</button>
-        <button class="pill" [class.active-warn]="filtre()==='WARN'"  (click)="filtre.set('WARN')">WARN</button>
+        <button class="pill" [class.active-warn]="filtre()==='FAIL'"  (click)="filtre.set('FAIL')">WARN</button>
         <button class="pill" [class.active-red]="filtre()==='BLOCK'"  (click)="filtre.set('BLOCK')">BLOCK</button>
       </div>
 
@@ -35,7 +35,7 @@
         } @else {
           @for (log of logsFiltres(); track log.id) {
             <div class="log-entry" [class]="logClass(log.type)">
-              <span class="log-ts">{{ log.created_at | date:'HH:mm:ss' }}</span>
+              <span class="log-ts">{{ log.created_at  }}</span>
               <span class="log-badge" [class]="logClass(log.type)">{{ log.type }}</span>
               <span class="log-msg">{{ log.message }}</span>
               @if (log.ip) { <span class="log-ip">{{ log.ip }}</span> }

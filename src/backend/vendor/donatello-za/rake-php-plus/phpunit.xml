@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="vendor/autoload.php"
+         backupGlobals="false"
+         colors="true"
+         stopOnError="false"
+         stopOnFailure="false"
+         stopOnRisky="false"
+         stopOnWarning="false"
+         processIsolation="false"
+         cacheDirectory=".phpunit.cache">
+  <testsuites>
+    <testsuite name="RAKE PHP Plus Test Suite">
+      <directory>tests</directory>
+    </testsuite>
+  </testsuites>
+  <source>
+    <include>
+      <directory suffix=".php">src</directory>
+    </include>
+    <exclude>
+      <file>src/autoload.php</file>
+    </exclude>
+  </source>
+</phpunit>

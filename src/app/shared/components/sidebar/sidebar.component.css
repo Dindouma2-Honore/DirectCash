@@ -2,8 +2,9 @@
 .sidebar {
   width: 240px;
   min-width: 240px;
-  background: #0d1117;
-  border-right: 1px solid #1c2a3e;
+  background: white;
+  color: #07090f;
+  border-right: 1px solid rgb(238, 237, 237);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -19,15 +20,15 @@
 .logo-mark { display: flex; align-items: center; gap: 10px; }
 .logo-icon {
   width: 36px; height: 36px;
-  background: linear-gradient(135deg, #e8b84b 0%, #f5a623 100%);
+  background: blue;
   border-radius: 8px; display: flex; align-items: center;
   justify-content: center; font-size: 18px; flex-shrink: 0;
 }
 .logo-wordmark {
   font-family: 'Syne', sans-serif;
-  font-size: 1.1rem; font-weight: 800; letter-spacing: -.5px; color: #e8eaf0;
+  font-size: 1.1rem; font-weight: 800; letter-spacing: -.5px; color: black;
 }
-.logo-wordmark span { color: #e8b84b; }
+.logo-wordmark span { color: blue; }
 .logo-badge {
   font-size: 9px; background: rgba(29,233,182,.12); color: #1de9b6;
   border: 1px solid rgba(29,233,182,.25); padding: 1px 6px;
@@ -43,7 +44,7 @@
 }
 .nav-item {
   display: flex; align-items: center; gap: 10px;
-  padding: .55rem 1.25rem; color: #8899aa;
+  padding: .55rem 1.25rem; color: black;
   font-size: 13.5px; font-weight: 400; cursor: pointer;
   transition: all 0.18s ease; border: none;
   background: transparent; width: 100%; text-align: left;
@@ -53,8 +54,8 @@
 }
 .nav-item:hover { background: #111827; color: #e8eaf0; }
 .nav-item.active {
-  background: rgba(232,184,75,.12); color: #e8b84b;
-  font-weight: 500; border-left-color: #e8b84b;
+  background: rgb(250, 136, 95); color: black;
+  font-weight: 500; border-left-color: blue;
 }
 .nav-icon { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
 .nav-badge {
@@ -75,9 +76,9 @@
 }
 .user-avatar {
   width: 32px; height: 32px; border-radius: 8px;
-  background: linear-gradient(135deg, #e8b84b 0%, #c97d10 100%);
+  background: blue;
   display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 800; color: #07090f;
+  font-size: 12px; font-weight: 800; color: white;
   font-family: 'Syne', sans-serif; flex-shrink: 0;
 }
 .user-name { font-size: 12px; font-weight: 600; color: #e8eaf0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

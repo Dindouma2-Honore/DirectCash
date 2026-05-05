@@ -1,7 +1,7 @@
 /* src/app/shared/components/topbar/topbar.component.css */
 .topbar {
-  height: 58px; background: #0d1117;
-  border-bottom: 1px solid #1c2a3e;
+  height: 58px; background: white;
+  border-bottom: 1px solid rgb(238, 237, 237);
   display: flex; align-items: center;
   justify-content: space-between;
   padding: 0 1.75rem; gap: 1rem; flex-shrink: 0;
@@ -14,7 +14,7 @@
   cursor: pointer; font-size: 16px; color: #e8eaf0;
 }
 .topbar-left { display: flex; flex-direction: column; flex: 1; }
-.topbar-title { font-family: 'Syne', sans-serif; font-size: .95rem; font-weight: 700; letter-spacing: -.3px; color: #e8eaf0; }
+.topbar-title { font-family: 'Syne', sans-serif; font-size: .95rem; font-weight: 700; letter-spacing: -.3px; color: black; }
 .topbar-path  { font-size: 11px; color: #4a5568; font-family: 'JetBrains Mono', monospace; }
 .topbar-right { display: flex; align-items: center; gap: .6rem; position: relative; }
 .status-chip {

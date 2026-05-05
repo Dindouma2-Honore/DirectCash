@@ -6,42 +6,43 @@
   </div>
 
   @if (logService.alertesActives().length > 0) {
-    <div class="alert-banner warn">
-      <span>⚠️</span>
-      <span><strong>{{ logService.alertesActives().length }} alerte(s) active(s)</strong> nécessitent votre attention.</span>
-    </div>
+  <div class="alert-banner warn">
+    <span>⚠️</span>
+    <span><strong>{{ logService.alertesActives().length }} alerte(s) active(s)</strong> nécessitent votre
+      attention.</span>
+  </div>
   } @else {
-    <div class="alert-banner success"><span>✅</span><span>Aucune alerte active — système sécurisé.</span></div>
+  <div class="alert-banner success"><span>✅</span><span>Aucune alerte active — système sécurisé.</span></div>
   }
 
   <div class="dc-card">
     @if (logService.loading()) {
-      @for (i of [1,2,3]; track i) { <div class="skeleton-alerte"></div> }
+    @for (i of [1,2,3]; track i) { <div class="skeleton-alerte"></div> }
     } @else {
-      @for (a of logService.alertes(); track a.id) {
-        <div class="alerte-card" [class]="severiteClass(a.severite)" [class.resolue]="a.statut==='resolue'">
-          <div class="alerte-head">
-            <div class="alerte-title">{{ icone(a) }} {{ a.titre }}</div>
-            <span class="chip" [class]="a.statut==='resolue' ? 'success' : a.severite==='critique' ? 'danger' : 'warn'">
-              {{ a.statut === 'resolue' ? 'RÉSOLUE' : a.statut.toUpperCase() }}
-            </span>
-          </div>
-          <div class="alerte-meta">
-            @if (a.ip) { IP : {{ a.ip }} · }
-            {{ a.created_at | date:'dd/MM/yyyy HH:mm:ss' }}
-          </div>
-          <div class="alerte-desc">{{ a.description }}</div>
-          @if (a.statut !== 'resolue') {
-            <div class="alerte-actions">
-              <button class="btn-sm gold" (click)="resoudre(a)">✅ Résoudre</button>
-              <button class="btn-sm ghost">📋 Détails</button>
-            </div>
-          }
-        </div>
+    @for (a of logService.alertes(); track a.id) {
+    <div class="alerte-card" [ngClass]="severiteClass(a.severite)" [class.resolue]="a.statut==='resolue'">
+      <div class="alerte-head">
+        <div class="alerte-title">{{ icone(a) }} {{ a.titre }}</div>
+        <span class="chip" [ngClass]="a.statut==='resolue' ? 'success' : a.severite==='critique' ? 'danger' : 'warn'">
+          {{ a.statut === 'resolue' ? 'RÉSOLUE' : a.statut.toUpperCase() }}
+        </span>
+      </div>
+      <div class="alerte-meta">
+        @if (a.ip) { IP : {{ a.ip }} · }
+        {{ a.created_at | date:'dd/MM/yyyy HH:mm:ss' : undefined : 'fr' }}
+      </div>
+      <div class="alerte-desc">{{ a.description }}</div>
+      @if (a.statut !== 'resolue') {
+      <div class="alerte-actions">
+        <button class="btn-sm gold" (click)="resoudre(a)">✅ Résoudre</button>
+        <button class="btn-sm ghost">📋 Détails</button>
+      </div>
       }
-      @if (logService.alertes().length === 0) {
-        <div class="empty-state">🛡️ Aucune alerte enregistrée</div>
-      }
+    </div>
+    }
+    @if (logService.alertes().length === 0) {
+    <div class="empty-state">🛡️ Aucune alerte enregistrée</div>
+    }
     }
   </div>
 </div>

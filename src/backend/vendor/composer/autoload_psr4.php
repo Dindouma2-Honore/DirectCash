@@ -7,4 +7,5 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'PHPMailer\\PHPMailer\\' => array($vendorDir . '/phpmailer/phpmailer/src'),
+    'DonatelloZa\\RakePlus\\' => array($vendorDir . '/donatello-za/rake-php-plus/src'),
 );

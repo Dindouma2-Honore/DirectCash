@@ -1,7 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { TransactionService } from '../../shared/services/transaction.service';
+import { BeneficiaireFrequent, TransactionService } from '../../shared/services/transaction.service';
 import { CompteService } from '../../shared/services/compte.service';
 import { AuthService } from '../../shared/services/auth.service';
 import { ToastService } from '../../shared/services/toast.service';
@@ -24,12 +24,9 @@ export class EnvoiComponent implements OnInit {
   showOtp    = signal(false);
   loading    = signal(false);
   erreur     = signal('');
-
-  beneficiaires = [
-    { nom: 'NKUISSI Marie', compte: 'DC-237-0099', initiales: 'NM', color: 'teal'   },
-    { nom: 'TAGNE Paul',    compte: 'DC-237-0042', initiales: 'TP', color: 'blue'   },
-    { nom: 'EKANE Sophie',  compte: 'DC-237-0175', initiales: 'ES', color: 'purple' },
-  ];
+ 
+  beneficiaires = signal<BeneficiaireFrequent[]>([]);
+  
 
   constructor(
     private fb: FormBuilder,
@@ -48,6 +45,10 @@ export class EnvoiComponent implements OnInit {
   ngOnInit() {
     this.compte.charger().subscribe();
     this.idemKey.set(this.txService.genererCleIdempotence());
+     this.txService.getBeneficiairesFrequents().subscribe({
+    next: data => this.beneficiaires.set(data),
+    error: ()  => {} // silencieux si vide
+  });
   }
 
   isInvalid(f: string) { const c = this.form.get(f)!; return c.invalid && (c.dirty || c.touched); }
@@ -58,13 +59,16 @@ export class EnvoiComponent implements OnInit {
     this.montant.set(m); this.frais.set(f); this.total.set(m + f);
   }
 
-  setDest(b: any) { this.form.patchValue({ compte_dest: b.compte }); this.destInfo.set(b.nom); }
+setDest(b: BeneficiaireFrequent) {
+  this.form.patchValue({ compte_dest: b.compte_dest });
+  this.destInfo.set(`${b.prenom} ${b.nom}`);
+}
 
-  verifierDest() {
-    const c = this.form.value.compte_dest;
-    const b = this.beneficiaires.find(x => x.compte === c);
-    this.destInfo.set(b?.nom ?? '');
-  }
+ verifierDest() {
+  const c = this.form.value.compte_dest;
+  const b = this.beneficiaires().find(x => x.compte_dest === c); // ✅ signal() + bon champ
+  this.destInfo.set(b ? `${b.prenom} ${b.nom}` : '');
+}
 
   otpInput(e: Event, idx: number) {
     const el = e.target as HTMLInputElement;
@@ -80,28 +84,53 @@ export class EnvoiComponent implements OnInit {
   }
   getOtp() { return this.otpCodes.join(''); }
 
-  onSubmit() {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
-    if (!this.showOtp()) { this.showOtp.set(true); return; }
-    if (this.getOtp().length !== 6) { this.toast.warn('Saisissez le code OTP à 6 chiffres'); return; }
-    if (this.total() > this.compte.soldeDisponible()) { this.erreur.set('Solde insuffisant.'); return; }
-    this.loading.set(true); this.erreur.set('');
-    this.txService.envoi({
-      compte_dest:     this.form.value.compte_dest!,
-      montant:         this.montant(),
-      motif:           this.form.value.motif || undefined,
-      idempotency_key: this.idemKey(),
-      otp:             this.getOtp()
-    }).subscribe({
+ onSubmit() {
+  if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+
+  // Étape 1 : formulaire valide, OTP pas encore affiché → envoyer l'OTP
+  if (!this.showOtp()) {
+    this.loading.set(true);
+    this.erreur.set('');
+
+    this.txService.sendOTPEnvoi().subscribe({
       next: res => {
         this.loading.set(false);
-        this.compte.majSolde(res.nouveau_solde);
-        this.toast.success(`${this.montant().toLocaleString('fr-FR')} FCFA envoyés à ${this.form.value.compte_dest}`);
-        this.form.reset(); this.showOtp.set(false);
-        this.otpCodes = ['','','','','','']; this.montant.set(0); this.frais.set(0); this.total.set(0);
-        this.idemKey.set(this.txService.genererCleIdempotence());
+        this.showOtp.set(true);
+        this.toast.success(`Code OTP envoyé à ${res.email_masque}`);
       },
-      error: err => { this.loading.set(false); this.erreur.set(err.error?.message || 'Erreur lors du transfert.'); this.showOtp.set(false); }
+      error: err => {
+        this.loading.set(false);
+        this.erreur.set(err.error?.message || 'Impossible d\'envoyer le code OTP.');
+      }
     });
+    return;
   }
+
+  // Étape 2 : OTP affiché → vérifier et soumettre le transfert
+  if (this.getOtp().length !== 6) { this.toast.warn('Saisissez le code OTP à 6 chiffres'); return; }
+  if (this.total() > this.compte.soldeDisponible()) { this.erreur.set('Solde insuffisant.'); return; }
+
+  this.loading.set(true); this.erreur.set('');
+  this.txService.envoi({
+    compte_dest:     this.form.value.compte_dest!,
+    montant:         this.montant(),
+    motif:           this.form.value.motif || undefined,
+    idempotency_key: this.idemKey(),
+    otp:             this.getOtp()
+  }).subscribe({
+    next: res => {
+      this.loading.set(false);
+      this.compte.majSolde(res.nouveau_solde);
+      this.toast.success(`${this.montant().toLocaleString('fr-FR')} FCFA envoyés à ${this.form.value.compte_dest}`);
+      this.form.reset(); this.showOtp.set(false);
+      this.otpCodes = ['','','','','','']; this.montant.set(0); this.frais.set(0); this.total.set(0);
+      this.idemKey.set(this.txService.genererCleIdempotence());
+    },
+    error: err => {
+      this.loading.set(false);
+      this.erreur.set(err.error?.message || 'Erreur lors du transfert.');
+      this.showOtp.set(false);
+    }
+  });
+}
 }

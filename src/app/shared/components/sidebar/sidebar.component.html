@@ -6,7 +6,7 @@
     <div class="logo-mark">
       <div class="logo-icon">💳</div>
       <div>
-        <div class="logo-wordmark">Direct<span>Cash</span></div>
+        <div class="logo-wordmark">M<span>C</span></div>
         <div class="logo-badge">● SÉCURISÉ</div>
       </div>
     </div>
@@ -30,15 +30,15 @@
     </a>
 
     <!-- Vérification OTP → déjà dans /securite/2fa -->
-    <a class="nav-item" routerLink="/securite/2fa" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}"
+    <!-- <a class="nav-item" routerLink="/securite/2fa" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}"
       (click)="close()">
       <span class="nav-icon">🔑</span> Vérification OTP
-    </a>
+    </a> -->
 
     <span class="nav-section">Transactions</span>
-    <a class="nav-item" routerLink="/transactions/depot" routerLinkActive="active" (click)="close()">
+    <!-- <a class="nav-item" routerLink="/transactions/depot" routerLinkActive="active" (click)="close()">
       <span class="nav-icon">⬇️</span> Dépôt
-    </a>
+    </a> -->
     <a class="nav-item" routerLink="/transactions/envoi" routerLinkActive="active" (click)="close()">
       <span class="nav-icon">➡️</span> Envoi d'argent
     </a>
@@ -52,11 +52,12 @@
     <span class="nav-section">Sécurité</span>
     <a class="nav-item" routerLink="/securite/logs" routerLinkActive="active" (click)="close()">
       <span class="nav-icon">📄</span> Journaux
-      <span class="nav-badge warn">3</span>
+      <!-- <span class="nav-badge warn">3</span> -->
     </a>
     <a class="nav-item" routerLink="/securite/alertes" routerLinkActive="active" (click)="close()">
       <span class="nav-icon">🚨</span> Alertes
-      <span class="nav-badge">1</span>
+      <span class="nav-badge"> {{ logservice.alertesActives().length }} </span>
+      
     </a>
     <a class="nav-item" routerLink="/securite/2fa" routerLinkActive="active" (click)="close()">
       <span class="nav-icon">🛡️</span> Paramètres 2FA

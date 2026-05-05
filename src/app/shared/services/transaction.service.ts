@@ -5,6 +5,14 @@ import { map, Observable, tap } from 'rxjs';
 import { StatsMois, Transaction, TransactionFilters } from '../models/transaction.model';
 import { environment } from '../../../environments/environment';
 
+export interface BeneficiaireFrequent {
+  compte_dest: string;
+  prenom: string;
+  nom: string;
+  telephone: string;
+  nb_envois: number;
+  total_envoye: number;
+}
 @Injectable({ providedIn: 'root' })
 export class TransactionService {
   private readonly API = environment.apiUrl;
@@ -15,6 +23,7 @@ export class TransactionService {
   private _filters = signal<TransactionFilters>({ page: 1, limit: 10 });
 
   readonly transactions = this._txs.asReadonly();
+
   readonly loading = this._loading.asReadonly();
   readonly total = this._total.asReadonly();
   readonly filters = this._filters.asReadonly();
@@ -24,6 +33,16 @@ export class TransactionService {
   sendOTPRetrait(): Observable<{ message: string; email_masque: string; expire_dans: number }> {
     return this.http.post<{ message: string; email_masque: string; expire_dans: number }>(
       `${this.API}/transaction.php?action=send_otp_retrait`, {}
+    );
+  }
+  sendOTPEnvoi(): Observable<{ message: string; email_masque: string; expire_dans: number }> {
+    return this.http.post<{ message: string; email_masque: string; expire_dans: number }>(`${this.API}/transaction.php?action=send_otp_envoi`, {});
+  }
+
+  verifierPin(pin: string): Observable<{ valide: boolean }> {
+    return this.http.post<{ valide: boolean }>(
+      `${this.API}/transaction.php?action=verifier_pin`,
+      { pin }
     );
   }
   charger(f?: Partial<TransactionFilters>) {
@@ -58,6 +77,11 @@ export class TransactionService {
       `${this.API}/transaction.php?action=retrait`, payload
     ).pipe(tap(() => this.charger().subscribe()));
   }
+  getBeneficiairesFrequents(): Observable<BeneficiaireFrequent[]> {
+    return this.http.get<BeneficiaireFrequent[]>(
+      `${this.API}/transaction.php?action=beneficiaires_frequents`
+    );
+  }
 
   getDetail(code: string) {
     return this.http.get<Transaction>(`${this.API}/transaction.php?code=${code}`);
@@ -74,7 +98,7 @@ export class TransactionService {
     const r = () => Math.random().toString(36).substr(2, 8);
     return `DC-TXN-${r()}-${r().substr(0, 4)}`;
   }
-  
+
   // ======================================= Statistique du mois============
   // ========================================================================
 
@@ -110,30 +134,30 @@ export class TransactionService {
         })
       );
   }
-  TotalEnvoiMois():Observable<{totalMontant:number; totalNombre:number}>{
-    const maintenant=new Date()
-    const annee=maintenant.getFullYear()
-    const mois=maintenant.getMonth()+1
-    const debutMois= `${annee}-${mois.toString().padStart(2,'0')}-01`;
-    const finMois=`${annee}-${mois.toString().padStart(2,'0')}-${new Date(annee,mois,0).getDate()}`;
-    let params=new HttpParams()
-    .set('type','envoi')
-    .set('date_debut',debutMois)
-    .set('date_fin',finMois)
-    .set('limit','9999');
-    return this.http.get<{data:Transaction[]; total: number}>(`${this.API}/transaction.php`,{params})
-    .pipe(
-      map(response=>{
-        let totalMontant=0
-        let totalNombre=response.data.length
-        for (let tx  of response.data) {
-          const montant = typeof tx.montant==='string'? parseFloat(tx.montant) : tx.montant;
-          totalMontant += isNaN(montant)? 0:montant
-          
-        }
-        return {totalMontant,totalNombre}
-      })
-    )
- }
+  TotalEnvoiMois(): Observable<{ totalMontant: number; totalNombre: number }> {
+    const maintenant = new Date()
+    const annee = maintenant.getFullYear()
+    const mois = maintenant.getMonth() + 1
+    const debutMois = `${annee}-${mois.toString().padStart(2, '0')}-01`;
+    const finMois = `${annee}-${mois.toString().padStart(2, '0')}-${new Date(annee, mois, 0).getDate()}`;
+    let params = new HttpParams()
+      .set('type', 'envoi')
+      .set('date_debut', debutMois)
+      .set('date_fin', finMois)
+      .set('limit', '9999');
+    return this.http.get<{ data: Transaction[]; total: number }>(`${this.API}/transaction.php`, { params })
+      .pipe(
+        map(response => {
+          let totalMontant = 0
+          let totalNombre = response.data.length
+          for (let tx of response.data) {
+            const montant = typeof tx.montant === 'string' ? parseFloat(tx.montant) : tx.montant;
+            totalMontant += isNaN(montant) ? 0 : montant
+
+          }
+          return { totalMontant, totalNombre }
+        })
+      )
+  }
 
 }

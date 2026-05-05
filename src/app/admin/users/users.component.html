@@ -118,6 +118,14 @@
           <input class="dc-input" formControlName="telephone" placeholder="+237 6XX XXX XXX">
         </div>
         <div class="field-group">
+          <label class="dc-label">Mot de passe</label>
+          <input class="dc-input" formControlName="mdp_hash" placeholder="Mot de passe a 8 chiffre">
+        </div>
+        <div class="field-group">
+          <label class="dc-label">Code PIN</label>
+          <input class="dc-input" formControlName="pin_hash" placeholder="Mot de passe a 4 chiffre">
+        </div>
+        <div class="field-group">
           <label class="dc-label">Rôle</label>
           <select class="dc-select" formControlName="role">
             <option value="client">Client</option>
@@ -126,7 +134,7 @@
           </select>
         </div>
         <div class="modal-actions">
-          <button type="submit" class="btn-submit gold" [disabled]="addForm.invalid || loadingModal()">
+          <button type="submit" class="btn-submit gold" [disabled]="addForm.invalid || loadingModal()" (click)="creerUser()">
             @if (loadingModal()) { <span class="spinner"></span> Création… }
             @else { ✅ Créer }
           </button>

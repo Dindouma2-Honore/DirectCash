@@ -7,7 +7,7 @@
       <div class="logo-icon">💳</div>
       <div>
         <div class="logo-wordmark">Direct<span>Cash</span></div>
-        <div class="logo-sub">SECURE PAYMENT PLATFORM</div>
+        <div class="logo-sub">PLATEFORME DE PAIEMENT SECURISE</div>
       </div>
     </div>
 
@@ -34,7 +34,7 @@
       <div class="field-group">
         <label class="dc-label">Email</label>
         <input class="dc-input" formControlName="email" type="email"
-          [class.input-error]="isInvalid('email')" placeholder="jean@directcash.cm">
+          [class.input-error]="isInvalid('email')" placeholder="dindouma@directcash.cm">
         @if (isInvalid('email')) { <span class="field-error">Email valide requis</span> }
       </div>
 
@@ -91,7 +91,7 @@
 
       <button type="submit" class="btn-submit" [disabled]="loading() || form.invalid">
         @if (loading()) { <span class="spinner"></span> Création… }
-        @else { ✨ Créer mon compte }
+        @else {  Créer mon compte }
       </button>
     </form>
 

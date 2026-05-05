@@ -1,5 +1,5 @@
 // src/app/securite/logs/logs.component.ts
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LogService } from '../../shared/services/log.service';
 

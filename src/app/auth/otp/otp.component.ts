@@ -92,7 +92,7 @@ export class OtpComponent implements OnInit, AfterViewInit, OnDestroy {
         this.renvoye.set(true);
         this.startTimer();
         setTimeout(() => this.renvoye.set(false), 3000);
-        this.toast.success('Nouveau code OTP envoyé par SMS');
+        this.toast.success('Nouveau code OTP envoyé par Email');
       }
     });
   }

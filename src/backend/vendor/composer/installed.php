@@ -19,6 +19,15 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'donatello-za/rake-php-plus' => array(
+            'pretty_version' => 'v2.0.0',
+            'version' => '2.0.0.0',
+            'reference' => '48265244db38d3ed2b303652ded43f5a5eb780c5',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../donatello-za/rake-php-plus',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'phpmailer/phpmailer' => array(
             'pretty_version' => 'v7.0.2',
             'version' => '7.0.2.0',

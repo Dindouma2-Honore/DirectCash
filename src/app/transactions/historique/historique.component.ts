@@ -1,5 +1,5 @@
 // src/app/transactions/historique/historique.component.ts
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, computed, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TransactionService } from '../../shared/services/transaction.service';
@@ -58,4 +58,5 @@ export class HistoriqueComponent implements OnInit {
 
   ouvrirDetail(tx: Transaction) { this.detail.set(tx); }
   fermerDetail()                { this.detail.set(null); }
+ 
 }

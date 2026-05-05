@@ -8,20 +8,21 @@
   <div class="dc-card">
     <!-- Filtres -->
     <div class="filters-bar">
-      <input class="dc-input" [(ngModel)]="search" placeholder="🔍 Rechercher…">
-      <select class="dc-select" [(ngModel)]="fType">
+      <input class="dc-input" [(ngModel)]="search" placeholder="🔍 Rechercher…" (ngModelChange)="filtrer()">
+      <select class="dc-select" [(ngModel)]="fType" (ngModelChange)="filtrer()">
         <option value="">Tous types</option>
         <option value="depot">Dépôt</option>
         <option value="envoi">Envoi</option>
         <option value="retrait">Retrait</option>
       </select>
-      <select class="dc-select" [(ngModel)]="fStatut">
+      <select class="dc-select" [(ngModel)]="fStatut" (ngModelChange)="filtrer()">
         <option value="">Tous statuts</option>
         <option value="valide">Validé</option>
         <option value="en_cours">En cours</option>
         <option value="echoue">Échoué</option>
       </select>
-      <input class="dc-input date-inp" [(ngModel)]="fDate" type="date">
+      <input class="dc-input date-inp" [ngModel]="fDate" (ngModelChange)="filtrer()" type="date" >
+      
       <button class="btn-sm gold" (click)="filtrer()">🔍 Filtrer</button>
       <button class="btn-sm ghost" (click)="reinitialiser()">✕ Reset</button>
       <button class="btn-sm ghost export" (click)="exporter()">📥 CSV</button>
@@ -78,6 +79,7 @@
           }
         </tbody>
       </table>
+      
     </div>
 
     <!-- Pagination -->
