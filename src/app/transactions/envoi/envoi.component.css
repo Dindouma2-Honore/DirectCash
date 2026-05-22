@@ -6,6 +6,28 @@
 .dc-card-sub{font-size:12px;color:black;margin-bottom:1rem}
 .gold-text{color:#e8b84b}.danger-text{color:#ff5252}
 .field-group{margin-bottom:1rem}
+.mode-toggle {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.mode-toggle button {
+  flex: 1;
+  padding: 10px 12px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.mode-toggle button.active {
+  border-color: var(--accent);
+  background:blue;
+  color: white;
+  font-weight: 600;
+}
 .dc-label{font-size:11px;font-weight:700;color:black;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;display:block;font-family:'Segoe'}
 .input-wrap{position:relative;display:flex;align-items:center}
 .input-pfx{position:absolute;left:.875rem;font-size:14px;color:black;pointer-events:none;font-family:'Segoe ui',monospace}
@@ -47,3 +69,5 @@
 .benef-compte{font-size:11px;color:black;font-family:'JetBrains Mono',monospace}
 .benef-arrow{color:black;font-size:18px}
 @media(max-width:900px){.two-col{grid-template-columns:1fr}}
+
+.spinner-sm{width:12px;height:12px;border:2px solid rgba(100,100,255,.3);border-top-color:#6366f1;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:4px}

@@ -66,13 +66,21 @@ export class TransactionService {
     ).pipe(tap(() => this.charger().subscribe()));
   }
 
-  envoi(payload: { compte_dest: string; montant: number; motif?: string; idempotency_key: string; otp: string }) {
-    return this.http.post<{ transaction: Transaction; nouveau_solde: number }>(
-      `${this.API}/transaction.php?action=envoi`, payload
-    ).pipe(tap(() => this.charger().subscribe()));
-  }
+  envoi(payload: {
+  compte_dest: string;
+  montant: number;
+  motif?: string;
+  idempotency_key: string;
+  otp: string;
+  mode_envoi?: string;   
+  operateur?: string;    
+}) {
+  return this.http.post<{ transaction: Transaction; nouveau_solde: number }>(
+    `${this.API}/transaction.php?action=envoi`, payload
+  ).pipe(tap(() => this.charger().subscribe()));
+}
 
-  retrait(payload: { montant: number; mode: string; pin: string; otp: string }) {
+  retrait(payload: { montant: number; mode: string; pin: string; otp: string,compte_dest:string }) {
     return this.http.post<{ transaction: Transaction; nouveau_solde: number }>(
       `${this.API}/transaction.php?action=retrait`, payload
     ).pipe(tap(() => this.charger().subscribe()));
@@ -103,7 +111,7 @@ export class TransactionService {
   // ========================================================================
 
 
-  getTotalDepotMois(): Observable<{ totalMontant: number; totalNombre: number }> {
+  getTotalRetraitMois(): Observable<{ totalMontant: number; totalNombre: number }> {
     const maintenant = new Date();
     const annee = maintenant.getFullYear();
     const mois = maintenant.getMonth() + 1;
@@ -111,7 +119,7 @@ export class TransactionService {
     const finMois = `${annee}-${mois.toString().padStart(2, '0')}-${new Date(annee, mois, 0).getDate()}`;
 
     let params = new HttpParams()
-      .set('type', 'depot')
+      .set('type', 'retrait')
       .set('date_debut', debutMois)
       .set('date_fin', finMois)
       .set('limit', '9999');
@@ -158,6 +166,13 @@ export class TransactionService {
           return { totalMontant, totalNombre }
         })
       )
+  }
+
+  /** Vérifie qu'un numéro de compte MyDirectCash existe et retourne le nom du titulaire */
+  verifierCompteDest(numero: string): Observable<{ nom: string; prenom: string }> {
+    return this.http.get<{ nom: string; prenom: string }>(
+      `${this.API}/transaction.php?action=verifier_compte&numero=${encodeURIComponent(numero)}`
+    );
   }
 
 }

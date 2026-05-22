@@ -30,7 +30,37 @@
 .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
 @keyframes spin{to{transform:rotate(360deg)}}
 .plafonds-list{display:flex;flex-direction:column;gap:1rem}
-.plafond-item{}
+/* ── Badges opérateur ─────────────────────────────────────────────── */
+.operator-badge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+}
+.operator-badge.orange {
+  background: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffb74d;
+}
+.operator-badge.mtn {
+  background: #fffde7;
+  color: #f57f17;
+  border: 1px solid #fdd835;
+}
+.operator-badge.bank {
+  background: #e3f2fd;
+  color: #1565c0;
+  border: 1px solid #64b5f6;
+}
+.operator-badge.agence {
+  background: #f3e5f5;
+  color: #6a1b9a;
+  border: 1px solid #ce93d8;
+}
 .plafond-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .plafond-label{font-size:12.5px;color:#e8eaf0}
 .plafond-val{font-size:11.5px;color:#4a5568}

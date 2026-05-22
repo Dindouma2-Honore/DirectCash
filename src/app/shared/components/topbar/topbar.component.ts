@@ -31,7 +31,7 @@ export class TopbarComponent {
 
   notifOpen   = signal(false);
   pageTitle   = signal('Tableau de bord');
-  pagePath    = signal('directcash / dashboard');
+  pagePath    = signal('Mydirectcash / dashboard');
 
   constructor(
     public auth: AuthService,

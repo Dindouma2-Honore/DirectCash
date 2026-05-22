@@ -8,24 +8,46 @@
   <div class="dc-card">
     <!-- Filtres -->
     <div class="filters-bar">
-      <input class="dc-input" [(ngModel)]="search" placeholder="🔍 Rechercher…" (ngModelChange)="filtrer()">
+
+      <div class="input-icon">
+
+        <input class="dc-input" [(ngModel)]="search" placeholder="Rechercher…" (ngModelChange)="filtrer()">
+      </div>
+
       <select class="dc-select" [(ngModel)]="fType" (ngModelChange)="filtrer()">
         <option value="">Tous types</option>
         <option value="depot">Dépôt</option>
         <option value="envoi">Envoi</option>
         <option value="retrait">Retrait</option>
       </select>
+
       <select class="dc-select" [(ngModel)]="fStatut" (ngModelChange)="filtrer()">
         <option value="">Tous statuts</option>
         <option value="valide">Validé</option>
         <option value="en_cours">En cours</option>
         <option value="echoue">Échoué</option>
       </select>
-      <input class="dc-input date-inp" [ngModel]="fDate" (ngModelChange)="filtrer()" type="date" >
-      
-      <button class="btn-sm gold" (click)="filtrer()">🔍 Filtrer</button>
-      <button class="btn-sm ghost" (click)="reinitialiser()">✕ Reset</button>
-      <button class="btn-sm ghost export" (click)="exporter()">📥 CSV</button>
+
+      <div class="input-icon">
+
+        <input class="dc-input date-inp" [ngModel]="fDate" (ngModelChange)="filtrer()" type="date">
+      </div>
+
+      <button class="btn-sm gold" (click)="filtrer()">
+        <i class='bx bx-search'></i>
+        Filtrer
+      </button>
+
+      <button class="btn-sm ghost" (click)="reinitialiser()">
+        <i class='bx bx-reset'></i>
+        Reset
+      </button>
+
+      <button class="btn-sm ghost export" (click)="exporter()">
+        <i class='bx bx-download'></i>
+        CSV
+      </button>
+
     </div>
 
     <!-- Tableau -->
@@ -35,7 +57,7 @@
           <tr>
             <th>Code</th>
             <th>Type</th>
-            <th>Contrepartie</th>
+            <th>Destinataire</th>
             <th>Montant</th>
             <th>Date</th>
             <th>Statut</th>
@@ -44,42 +66,44 @@
         </thead>
         <tbody>
           @if (txService.loading()) {
-            @for (i of [1,2,3,4,5]; track i) {
-              <tr class="skeleton-row">
-                @for (j of [1,2,3,4,5,6,7]; track j) {
-                  <td><div class="skeleton-cell"></div></td>
-                }
-              </tr>
+          @for (i of [1,2,3,4,5]; track i) {
+          <tr class="skeleton-row">
+            @for (j of [1,2,3,4,5,6,7]; track j) {
+            <td>
+              <div class="skeleton-cell"></div>
+            </td>
             }
+          </tr>
+          }
           } @else {
-            @for (tx of txService.transactions(); track tx.id) {
-              <tr>
-                <td class="mono code">{{ tx.code }}</td>
-                <td>
-                  <span class="chip" [class]="typeClass(tx.type)">{{ tx.type | uppercase }}</span>
-                </td>
-                <td class="contrepartie">{{ tx.type === 'depot' ? tx.compte_source : (tx.compte_dest || '—') }}</td>
-                <td class="montant" [class.pos]="isPos(tx.type)" [class.neg]="!isPos(tx.type)">
-                  {{ isPos(tx.type) ? '+' : '-' }}{{ tx.montant | number:'1.0-0':'fr-FR' }} FCFA
-                </td>
-                <td class="mono date-col">{{ tx.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
-                <td>
-                  <span class="chip" [class]="statutClass(tx.statut)">{{ tx.statut | uppercase }}</span>
-                </td>
-                <td>
-                  <button class="btn-icon" (click)="ouvrirDetail(tx)">👁</button>
-                </td>
-              </tr>
-            }
-            @if (txService.transactions().length === 0) {
-              <tr>
-                <td colspan="7" class="empty-cell">📭 Aucune transaction trouvée</td>
-              </tr>
-            }
+          @for (tx of txService.transactions(); track tx.id) {
+          <tr>
+            <td class="mono code">{{ tx.code }}</td>
+            <td>
+              <span class="chip" [class]="typeClass(tx.type)">{{ tx.type | uppercase }}</span>
+            </td>
+            <td class="contrepartie">{{ tx.type === 'depot' ? tx.compte_source : (tx.compte_dest || '—') }}</td>
+            <td class="montant" [class.pos]="isPos(tx.type)" [class.neg]="!isPos(tx.type)">
+              {{ isPos(tx.type) ? '+' : '-' }}{{ tx.montant | number:'1.0-0':'fr-FR' }} FCFA
+            </td>
+            <td class="mono date-col">{{ tx.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              <span class="chip" [class]="statutClass(tx.statut)">{{ tx.statut | uppercase }}</span>
+            </td>
+            <td>
+              <button class="btn-icon" (click)="ouvrirDetail(tx)"><i class='bx bx-show'></i></button>
+            </td>
+          </tr>
+          }
+          @if (txService.transactions().length === 0) {
+          <tr>
+            <td colspan="7" class="empty-cell"><i class='bx bx-data'></i> Aucune transaction trouvée</td>
+          </tr>
+          }
           }
         </tbody>
       </table>
-      
+
     </div>
 
     <!-- Pagination -->
@@ -87,8 +111,8 @@
       <span class="pag-info">{{ txService.total() }} transaction(s)</span>
       <div class="pag-btns">
         @for (p of pages(); track p) {
-          <button class="btn-page" [class.active]="p === txService.filters().page"
-            (click)="txService.changerPage(p)">{{ p }}</button>
+        <button class="btn-page" [class.active]="p === txService.filters().page" (click)="txService.changerPage(p)">{{ p
+          }}</button>
         }
       </div>
     </div>
@@ -97,22 +121,25 @@
 
 <!-- Modal détail -->
 @if (detail()) {
-  <div class="modal-overlay" (click)="fermerDetail()">
-    <div class="modal-box" (click)="$event.stopPropagation()">
-      <div class="modal-title">Détail de transaction</div>
-      <div class="modal-code mono">{{ detail()!.code }}</div>
-      <div class="detail-recap">
-        <div class="recap-row"><span>Type</span><span>{{ detail()!.type | uppercase }}</span></div>
-        <div class="recap-row"><span>Montant</span><span class="mono">{{ detail()!.montant | number:'1.0-0':'fr-FR' }} FCFA</span></div>
-        <div class="recap-row"><span>Frais</span><span class="mono">{{ detail()!.frais | number:'1.0-0':'fr-FR' }} FCFA</span></div>
-        <div class="recap-row"><span>Date</span><span class="mono">{{ detail()!.created_at | date:'dd/MM/yyyy HH:mm:ss' }}</span></div>
-        <div class="recap-row"><span>Statut</span>
-          <span class="chip" [class]="statutClass(detail()!.statut)">{{ detail()!.statut | uppercase }}</span>
-        </div>
-      </div>
-      <div class="modal-actions">
-        <button class="btn-sm ghost" (click)="fermerDetail()">Fermer</button>
+<div class="modal-overlay" (click)="fermerDetail()">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <div class="modal-title">Détail de transaction</div>
+    <div class="modal-code mono">{{ detail()!.code }}</div>
+    <div class="detail-recap">
+      <div class="recap-row"><span>Type</span><span>{{ detail()!.type | uppercase }}</span></div>
+      <div class="recap-row"><span>Montant</span><span class="mono">{{ detail()!.montant | number:'1.0-0':'fr-FR' }}
+          FCFA</span></div>
+      <div class="recap-row"><span>Frais</span><span class="mono">{{ detail()!.frais | number:'1.0-0':'fr-FR' }}
+          FCFA</span></div>
+      <div class="recap-row"><span>Date</span><span class="mono">{{ detail()!.created_at | date:'dd/MM/yyyy HH:mm:ss'
+          }}</span></div>
+      <div class="recap-row"><span>Statut</span>
+        <span class="chip" [class]="statutClass(detail()!.statut)">{{ detail()!.statut | uppercase }}</span>
       </div>
     </div>
+    <div class="modal-actions">
+      <button class="btn-sm ghost" (click)="fermerDetail()">Fermer</button>
+    </div>
   </div>
+</div>
 }

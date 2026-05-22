@@ -9,6 +9,7 @@ export interface Transaction {
   compte_source: string;
   compte_dest?: string;
   montant: number;
+  telephone:string;
   frais: number;
   motif?: string;
   statut: TxStatut;

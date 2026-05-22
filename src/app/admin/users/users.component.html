@@ -19,7 +19,7 @@
         <option value="verrouille">Verrouillé</option>
         <option value="suspendu">Suspendu</option>
       </select>
-      <button class="btn-add" (click)="showModal.set(true)">+ Nouvel utilisateur</button>
+      <button class="btn-add" (click)="showModal.set(true)"><i class='bx bx-plus'></i> Nouvel utilisateur</button>
     </div>
 
     <div class="table-wrap">
@@ -68,11 +68,11 @@
                 <td>
                   <div class="actions-cell">
                     @if (u.statut === 'verrouille') {
-                      <button class="btn-action teal" (click)="deverrouiller(u)" title="Déverrouiller">🔓</button>
+                      <button class="btn-action teal" (click)="deverrouiller(u)" title="Déverrouiller"><i class='bx bxs-lock-open'  ></i></button>
                     } @else {
-                      <button class="btn-action ghost" (click)="verrouiller(u)" title="Verrouiller">🔒</button>
+                      <button class="btn-action ghost" (click)="verrouiller(u)" title="Verrouiller"><i class='bx bxs-lock' style="color:white"></i></button>
                     }
-                    <button class="btn-action danger" (click)="suspendre(u)" title="Suspendre">⛔</button>
+                    <!-- <button class="btn-action danger" (click)="suspendre(u)" title="Suspendre"><i class='bx bxs-pause-circle'></i></button> -->
                   </div>
                 </td>
               </tr>

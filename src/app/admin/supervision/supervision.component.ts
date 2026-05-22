@@ -6,12 +6,12 @@ import { TransactionService } from '../../shared/services/transaction.service';
 import { FormsModule } from '@angular/forms';
 
 interface ServiceSante { nom:string; fichier:string; statut:'operationnel'|'degrade'|'hors_service'; latence_ms?:number; }
-interface StatsGlobales { utilisateurs_actifs:number; volume_jour:number; nb_transactions_jour:number; disponibilite:number; attaques_bloquees:number; }
+interface StatsGlobales { utilisateurs_actifs:number; volume_retrait:number; nb_transactions_jour:number; disponibilite:number; volume_envoi:number; }
 
 @Component({
   selector: 'app-supervision',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './supervision.component.html',
   styleUrls: ['./supervision.component.css']
 })
@@ -19,7 +19,32 @@ export class SupervisionComponent implements OnInit, OnDestroy {
   stats    = signal<StatsGlobales | null>(null);
   services = signal<ServiceSante[]>([]);
   private refreshTimer: any;
- 
+  search  = '';
+  fType   = '';
+  fStatut = '';
+  fDate   = '';
+ filtrer() {
+    this.txservice.charger({
+      search: this.search || undefined,
+      type:   (this.fType   as any) || undefined,
+      statut: (this.fStatut as any) || undefined,
+      date:   this.fDate   || undefined,
+      page: 1
+    }).subscribe();
+  }
+  reinitialiser() {
+    this.search = ''; this.fType = ''; this.fStatut = ''; this.fDate = '';
+    this.txservice.reinitialiser();
+  }
+  exporter() {
+    this.txservice.exportCSV().subscribe(blob => {
+      const url = URL.createObjectURL(blob);
+      const a   = document.createElement('a');
+      a.href = url; a.download = `Mydirectcash-${new Date().toISOString().slice(0,10)}.csv`;
+      a.click(); URL.revokeObjectURL(url);
+      
+    });
+  }
  pages = () => Array.from({ length: this.txservice.totalPages() }, (_, i) => i + 1);
 
   constructor(private http: HttpClient, public txservice:TransactionService) {}
@@ -41,8 +66,8 @@ export class SupervisionComponent implements OnInit, OnDestroy {
         //  this.currentPage.set(1)
         } ,
       error: () => this.stats.set({
-        utilisateurs_actifs: 1247, volume_jour: 4200000,
-        nb_transactions_jour: 312, disponibilite: 99.8, attaques_bloquees: 28
+        utilisateurs_actifs: 1247, volume_retrait: 4200000,
+        nb_transactions_jour: 312, disponibilite: 99.8, volume_envoi: 280000000
       })
     });
   }

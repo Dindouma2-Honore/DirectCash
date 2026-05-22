@@ -90,14 +90,26 @@ function getSupervision(): void
 
     $stats = $pdo->query(
         'SELECT
-           (SELECT COUNT(*) FROM utilisateurs WHERE statut="actif") AS utilisateurs_actifs,
-           (SELECT COALESCE(SUM(montant),0) FROM transactions
-            WHERE DATE(created_at)=CURDATE() AND statut="valide") AS volume_jour,
-           (SELECT COUNT(*) FROM transactions
-            WHERE DATE(created_at)=CURDATE() AND statut="valide") AS nb_transactions_jour,
+           (SELECT COUNT(*) 
+            FROM utilisateurs 
+            WHERE statut="actif") AS utilisateurs_actifs,
+
+           (SELECT COALESCE(SUM(montant),0) 
+            FROM transactions
+            WHERE type="retrait" 
+            AND statut="valide") AS volume_retrait,
+
+           (SELECT COUNT(*) 
+            FROM transactions
+            WHERE DATE(created_at)=CURDATE() 
+            AND statut="valide") AS nb_transactions_jour,
+
            99.8 AS disponibilite,
-           (SELECT COUNT(*) FROM logs_securite
-            WHERE type="BLOCK" AND DATE(created_at)=CURDATE()) AS attaques_bloquees'
+
+           (SELECT COALESCE(SUM(montant),0) 
+            FROM transactions
+            WHERE type="envoi" 
+            AND statut="valide") AS volume_envoi'
     )->fetch();
 
     jsonReponse($stats);

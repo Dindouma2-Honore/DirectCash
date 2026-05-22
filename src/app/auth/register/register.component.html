@@ -1,12 +1,11 @@
-<!-- src/app/auth/register/register.component.html -->
 <div class="auth-shell">
   <div class="auth-glow"></div>
   <div class="auth-card wide">
 
     <div class="auth-logo">
-      <div class="logo-icon">💳</div>
+      <div class="logo-icon"><img src="assets/image/001.png" alt="DirectCash logo"></div>
       <div>
-        <div class="logo-wordmark">Direct<span>Cash</span></div>
+        <div class="logo-wordmark">MyDirect<span>Cash</span></div>
         <div class="logo-sub">PLATEFORME DE PAIEMENT SECURISE</div>
       </div>
     </div>
@@ -34,7 +33,7 @@
       <div class="field-group">
         <label class="dc-label">Email</label>
         <input class="dc-input" formControlName="email" type="email"
-          [class.input-error]="isInvalid('email')" placeholder="dindouma@directcash.cm">
+          [class.input-error]="isInvalid('email')" placeholder="vous@directcash.cm">
         @if (isInvalid('email')) { <span class="field-error">Email valide requis</span> }
       </div>
 
@@ -42,7 +41,9 @@
         <label class="dc-label">Téléphone</label>
         <input class="dc-input" formControlName="telephone"
           [class.input-error]="isInvalid('telephone')" placeholder="+237 6XX XXX XXX">
-        @if (isInvalid('telephone')) { <span class="field-error">Format +237XXXXXXXXX requis</span> }
+        @if (isInvalid('telephone')) {
+          <span class="field-error">Format +237XXXXXXXXX requis</span>
+        }
       </div>
 
       <div class="row-2col">
@@ -50,7 +51,9 @@
           <label class="dc-label">Mot de passe</label>
           <input class="dc-input" formControlName="mot_de_passe" type="password"
             [class.input-error]="isInvalid('mot_de_passe')" placeholder="••••••••">
-          @if (isInvalid('mot_de_passe')) { <span class="field-error">8 caractères min.</span> }
+          @if (isInvalid('mot_de_passe')) {
+            <span class="field-error">8 caractères min.</span>
+          }
         </div>
         <div class="field-group">
           <label class="dc-label">Confirmer</label>
@@ -70,7 +73,8 @@
               [style.width]="pwdStrength() + '%'"
               [class.weak]="pwdStrength() < 40"
               [class.medium]="pwdStrength() >= 40 && pwdStrength() < 75"
-              [class.strong]="pwdStrength() >= 75"></div>
+              [class.strong]="pwdStrength() >= 75">
+            </div>
           </div>
           <span class="strength-label">{{ pwdLabel() }}</span>
         </div>
@@ -86,13 +90,14 @@
       </div>
 
       @if (erreur()) {
-        <div class="dc-alert danger"><span>⚠️</span><span>{{ erreur() }}</span></div>
+        <div class="dc-alert danger"><span><i class='bx bxs-error'></i></span><span>{{ erreur() }}</span></div>
       }
 
       <button type="submit" class="btn-submit" [disabled]="loading() || form.invalid">
         @if (loading()) { <span class="spinner"></span> Création… }
-        @else {  Créer mon compte }
+        @else { Créer mon compte }
       </button>
+
     </form>
 
     <div class="auth-divider"></div>

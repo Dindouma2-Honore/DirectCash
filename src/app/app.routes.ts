@@ -2,6 +2,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './shared/guards/auth.guard';
 import { adminGuard } from './shared/guards/admin.guard';
+import { clientGuard } from './shared/guards/client.guard';
 import { guestGuard } from './shared/guards/guest.guard';
 
 export const routes: Routes = [
@@ -52,8 +53,8 @@ export const routes: Routes = [
         path: 'transactions',
         children: [
           { path: 'depot', loadComponent: () => import('./transactions/depot/depot.component').then(m => m.DepotComponent), title: 'MydirectCash — Dépôt' },
-          { path: 'envoi', loadComponent: () => import('./transactions/envoi/envoi.component').then(m => m.EnvoiComponent), title: 'MydirectCash — Envoi' },
-          { path: 'retrait', loadComponent: () => import('./transactions/retrait/retrait.component').then(m => m.RetraitComponent), title: 'DirectCash — Retrait' },
+          { path: 'envoi', canActivate: [clientGuard], loadComponent: () => import('./transactions/envoi/envoi.component').then(m => m.EnvoiComponent), title: 'MydirectCash — Envoi' },
+          { path: 'retrait', canActivate: [clientGuard], loadComponent: () => import('./transactions/retrait/retrait.component').then(m => m.RetraitComponent), title: 'DirectCash — Retrait' },
           { path: 'historique', loadComponent: () => import('./transactions/historique/historique.component').then(m => m.HistoriqueComponent), title: 'DirectCash — Historique' },
           { path: '', redirectTo: 'historique', pathMatch: 'full' }
         ]
@@ -62,10 +63,10 @@ export const routes: Routes = [
       {
         path: 'securite',
         children: [
-          { path: 'logs', loadComponent: () => import('./securite/logs/logs.component').then(m => m.LogsComponent), title: 'MydirectCash — Journaux' },
-          { path: 'alertes', loadComponent: () => import('./securite/alertes/alertes.component').then(m => m.AlertesComponent), title: 'MydirectCash — Alertes' },
+          { path: 'logs', canActivate: [adminGuard], loadComponent: () => import('./securite/logs/logs.component').then(m => m.LogsComponent), title: 'MydirectCash — Journaux' },
+          { path: 'alertes', canActivate: [adminGuard], loadComponent: () => import('./securite/alertes/alertes.component').then(m => m.AlertesComponent), title: 'MydirectCash — Alertes' },
           { path: '2fa', loadComponent: () => import('./securite/parametres-2fa/parametres-2fa.component').then(m => m.Parametres2faComponent), title: 'MydirectCash — 2FA' },
-          { path: '', redirectTo: 'logs', pathMatch: 'full' }
+          { path: '', redirectTo: '2fa', pathMatch: 'full' }
         ]
       },
       // ── Admin ─────────────────────────────────────────────

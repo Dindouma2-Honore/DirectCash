@@ -11,17 +11,17 @@
       <div class="kpi-val gold-text">{{ stats()?.utilisateurs_actifs | number:'1.0-0':'fr-FR' }}</div>
     </div>
     <div class="kpi-card teal"><span class="kpi-ico">💸</span>
-      <div class="kpi-label">Volume du jour</div>
-      <div class="kpi-val teal-text">{{ formatVol(stats()?.volume_jour ?? 0) }}</div>
-      <div class="kpi-meta">FCFA · {{ stats()?.nb_transactions_jour }} tx</div>
+      <div class="kpi-label">Total retrait</div>
+      <div class="kpi-val teal-text">{{ formatVol(stats()?.volume_retrait ?? 0) }}</div>
+      <div class="kpi-meta">FCFA · {{ formatVol(stats()?.nb_transactions_jour ?? 0) }} tx</div>
     </div>
     <!-- <div class="kpi-card success"><span class="kpi-ico">✅</span>
       <div class="kpi-label">Disponibilité SLA</div>
       <div class="kpi-val success-text">{{ stats()?.disponibilite }}%</div>
     </div> -->
-    <div class="kpi-card danger"><span class="kpi-ico">🚫</span>
-      <div class="kpi-label">Attaques bloquées</div>
-      <div class="kpi-val danger-text">{{ stats()?.attaques_bloquees }}</div>
+    <div class="kpi-card danger"><span class="kpi-ico">💸</span>
+      <div class="kpi-label">Total Envoi</div>
+      <div class="kpi-val danger-text">{{ stats()?.volume_envoi }}</div>
       <div class="kpi-meta">Aujourd'hui</div>
     </div>
   </div>
@@ -50,8 +50,51 @@
         }
       </div>
     </div> -->
-
+       
     <div class="dc-card">
+      <!-- Filtres -->
+    <div class="filters-bar">
+
+      <div class="input-icon">
+
+        <input class="dc-input" [(ngModel)]="search" placeholder="Rechercher…" (ngModelChange)="filtrer()">
+      </div>
+
+      <select class="dc-select" [(ngModel)]="fType" (ngModelChange)="filtrer()">
+        <option value="">Tous types</option>
+        <!-- <option value="depot">Dépôt</option> -->
+        <option value="envoi">Envoi</option>
+        <option value="retrait">Retrait</option>
+      </select>
+
+      <select class="dc-select" [(ngModel)]="fStatut" (ngModelChange)="filtrer()">
+        <option value="">Tous statuts</option>
+        <option value="valide">Validé</option>
+        <option value="en_cours">En cours</option>
+        <option value="echoue">Échoué</option>
+      </select>
+
+      <div class="input-icon">
+
+        <input class="dc-input date-inp" [ngModel]="fDate" (ngModelChange)="filtrer()" type="date">
+      </div>
+
+      <button class="btn-sm gold" (click)="filtrer()">
+        <i class='bx bx-search'></i>
+        Filtrer
+      </button>
+
+      <button class="btn-sm ghost" (click)="reinitialiser()">
+        <i class='bx bx-reset'></i>
+        Reset
+      </button>
+
+      <button class="btn-sm ghost export" (click)="exporter()">
+        <i class='bx bx-download'></i>
+        CSV
+      </button>
+
+    </div>
       <div class="table-wrap">
         <div class="dc-card-title">Dernières transactions</div>
         <div class="dc-card-sub">Toute la plateforme — temps réel</div>

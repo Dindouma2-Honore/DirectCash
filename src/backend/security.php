@@ -8,70 +8,178 @@ declare(strict_types=1);
 require_once __DIR__ . '/config.php';
 
 // ================================================================
-//  1. PROTECTION SQL — AUTOMATE DE DÉTECTION
+//  1. PROTECTION SQL — AUTOMATE DE DÉTECTION AVEC POIDS
 // ================================================================
 class SqlGuard
 {
-    // Patterns couvrant les attaques SQLi classiques et avancées
+    /**
+     * Chaque entrée est un tableau [pattern, poids].
+     * Le poids (1–10) reflète la dangerosité intrinsèque du motif.
+     * Le cumul des poids déclenchés détermine la sévérité de l'alerte.
+     *
+     * Grille de sévérité :
+     *   poids >= 8  → critique
+     *   poids >= 5  → haute
+     *   poids >= 3  → moyenne
+     *   poids <  3  → faible
+     */
     private static array $patterns = [
-        '/\bUNION\s+(ALL\s+)?SELECT\b/i',
-        "/'\s*OR\s+'?\d+'?\s*=\s*'?\d+/i",
-        "/'\s*OR\s+'[^']*'\s*=\s*'[^']*/i",
-        '/\bOR\s+1\s*=\s*1\b/i',
-        '/\bDROP\s+(TABLE|DATABASE|SCHEMA)\b/i',
-        '/\bTRUNCATE\s+TABLE\b/i',
-        '/;\s*(DROP|DELETE|UPDATE|INSERT|ALTER)\b/i',
-        '/\bEXEC(\s|\()/i',
-        '/\bEXECUTE\s+(IMMEDIATE|SP_)\b/i',
-        '/\bSLEEP\s*\(\s*\d+\s*\)/i',
-        '/\bBENCHMARK\s*\(\s*\d+/i',
-        '/\bWAITFOR\s+DELAY\b/i',
-        '/\bINTO\s+(OUTFILE|DUMPFILE)\b/i',
-        '/\bLOAD_FILE\s*\(/i',
-        '/\bINFORMATION_SCHEMA\b/i',
-        '/\b(CHAR|NCHAR|VARCHAR|NVARCHAR)\s*\(\s*\d+\s*\)\s*\+/i',
-        '/0x[0-9a-fA-F]{4,}/i',                // Hex encoding
-        '/\bCAST\s*\(.*\bAS\s+\w+\s*\)/i',
-        '/\bCONVERT\s*\(.*USING\b/i',
-        '/\/\*.*?\*\//s',                        // Commentaires SQL /* */
-        '/--\s/',                               // Commentaires --
-        '/#\s/',                                // Commentaires #
+
+        // ── Exfiltration de données ──────────────────────────────── poids 8–10
+        ['/\bUNION\s+(ALL\s+)?SELECT\b/i',                              9],
+        ['/\bINTO\s+(OUTFILE|DUMPFILE)\b/i',                           10],
+        ['/\bLOAD_FILE\s*\(/i',                                        10],
+        ['/\bINFORMATION_SCHEMA\b/i',                                   8],
+
+        // ── Destruction / modification de données ────────────────── poids 9–10
+        ['/\bDROP\s+(TABLE|DATABASE|SCHEMA)\b/i',                      10],
+        ['/\bTRUNCATE\s+TABLE\b/i',                                     9],
+        ['/;\s*(DROP|DELETE|UPDATE|INSERT|ALTER)\b/i',                  9],
+
+        // ── Exécution de code / procédures stockées ──────────────── poids 8–9
+        ['/\bEXEC(\s|\()/i',                                            8],
+        ['/\bEXECUTE\s+(IMMEDIATE|SP_)\b/i',                            9],
+
+        // ── Injections temporelles — Blind SQLi ─────────────────── poids 7–8
+        ['/\bSLEEP\s*\(\s*\d+\s*\)/i',                                 8],
+        ['/\bBENCHMARK\s*\(\s*\d+/i',                                  8],
+        ['/\bWAITFOR\s+DELAY\b/i',                                      8],
+
+        // ── Contournement d'authentification ────────────────────── poids 6–7
+        ["/'\s*OR\s+'?\d+'?\s*=\s*'?\d+/i",                            7],
+        ["/'\s*OR\s+'[^']*'\s*=\s*'[^']*/i",                           7],
+        ['/\bOR\s+1\s*=\s*1\b/i',                                       6],
+
+        // ── Encodage / obfuscation ───────────────────────────────── poids 5–6
+        ['/0x[0-9a-fA-F]{4,}/i',                                        6],
+        ['/\bCAST\s*\(.*\bAS\s+\w+\s*\)/i',                            5],
+        ['/\bCONVERT\s*\(.*USING\b/i',                                  5],
+        ['/\b(CHAR|NCHAR|VARCHAR|NVARCHAR)\s*\(\s*\d+\s*\)\s*\+/i',    5],
+
+        // ── Commentaires SQL — masquage de payload ───────────────── poids 3–4
+        ['/\/\*.*?\*\//s',                                              4],
+        ['/--\s/',                                                      3],
+        ['/#\s/',                                                       3],
     ];
 
+    // ----------------------------------------------------------------
+    //  Analyse complète : retourne détection, poids cumulé et motifs
+    // ----------------------------------------------------------------
+
     /**
-     * Retourne true si une injection SQL est détectée
+     * Parcourt tous les patterns et cumule les poids des motifs qui matchent.
+     *
+     * @return array{detected: bool, poids: int, motifs: list<array{pattern: string, poids: int}>}
+     */
+    public static function analyze(string $input): array
+    {
+        $totalWeight = 0;
+        $matched     = [];
+
+        foreach (self::$patterns as [$pattern, $weight]) {
+            if (preg_match($pattern, $input)) {
+                $totalWeight += $weight;
+                $matched[]    = ['pattern' => $pattern, 'poids' => $weight];
+            }
+        }
+
+        return [
+            'detected' => $totalWeight > 0,
+            'poids'    => $totalWeight,
+            'motifs'   => $matched,
+        ];
+    }
+
+    // ----------------------------------------------------------------
+    //  Conversion poids → sévérité
+    // ----------------------------------------------------------------
+
+    /**
+     * Traduit un score de poids cumulé en niveau de sévérité métier.
+     *
+     * | Poids    | Sévérité |
+     * |----------|----------|
+     * | >= 8     | critique |
+     * | >= 5     | haute    |
+     * | >= 3     | moyenne  |
+     * | <  3     | faible   |
+     */
+    public static function severite(int $poids): string
+    {
+        return match (true) {
+            $poids >= 8 => 'critique',
+            $poids >= 5 => 'haute',
+            $poids >= 3 => 'moyenne',
+            default     => 'faible',
+        };
+    }
+
+    // ----------------------------------------------------------------
+    //  API publique
+    // ----------------------------------------------------------------
+
+    /**
+     * Retourne true si une injection SQL est détectée.
+     * (Conservé pour rétrocompatibilité avec les appels existants.)
      */
     public static function detect(string $input): bool
     {
-        foreach (self::$patterns as $pattern) {
-            if (preg_match($pattern, $input)) {
-                return true;
-            }
-        }
-        return false;
+        return self::analyze($input)['detected'];
     }
 
     /**
-     * Valide un tableau de champs — lève une exception si attaque détectée
+     * Valide un tableau de champs.
+     * Si une attaque est détectée :
+     *   1. Calcule le poids cumulé des motifs déclenchés.
+     *   2. Dérive la sévérité (faible / moyenne / haute / critique).
+     *   3. Écrit un log de sécurité horodaté.
+     *   4. Insère une alerte en base avec la sévérité dynamique.
+     *   5. Interrompt la requête avec HTTP 422.
      */
     public static function validateAll(array $fields): void
     {
         foreach ($fields as $name => $value) {
-            if (is_string($value) && self::detect($value)) {
-                // Journaliser avant de bloquer
-                LogService::write('BLOCK', sprintf(
-                    'SQL injection détectée · champ="%s" · payload="%s" · IP=%s',
-                    $name,
-                    substr($value, 0, 100),
-                    getIP()
-                ));
-                jsonError('Saisie invalide détectée. Requête bloquée.', 422);
-            }
+            if (!is_string($value)) continue;
+
+            $result = self::analyze($value);
+            if (!$result['detected']) continue;
+
+            $severite     = self::severite($result['poids']);
+            $nbMotifs     = count($result['motifs']);
+            $payloadCourt = substr($value, 0, 100);
+            $payloadLong  = substr($value, 0, 200);
+
+            // — Log structuré —
+            LogService::write('BLOCK', sprintf(
+                'SQL injection · champ="%s" · poids=%d · sévérité=%s · motifs=%d · payload="%s" · IP=%s',
+                $name,
+                $result['poids'],
+                $severite,
+                $nbMotifs,
+                $payloadCourt,
+                getIP()
+            ));
+
+            // — Alerte en base avec sévérité calculée dynamiquement —
+            LogService::creerAlerte(
+                type:        'sql_injection',
+                titre:       "Injection SQL détectée — champ « {$name} »",
+                description: sprintf(
+                    'Payload : "%s" | Poids cumulé : %d | Motifs déclenchés : %d | Sévérité calculée : %s',
+                    $payloadLong,
+                    $result['poids'],
+                    $nbMotifs,
+                    $severite
+                ),
+                severite: $severite
+            );
+
+            jsonError('Saisie invalide détectée. Requête bloquée.', 422);
         }
     }
 
     /**
-     * Valider un seul champ
+     * Valider un seul champ (raccourci).
      */
     public static function validateField(string $name, string $value): void
     {
@@ -86,7 +194,7 @@ class SqlGuard
 class XssGuard
 {
     /**
-     * Nettoie une chaîne contre les attaques XSS
+     * Nettoie une chaîne contre les attaques XSS.
      */
     public static function clean(string $input): string
     {
@@ -98,15 +206,15 @@ class XssGuard
 
         // Étape 3 : Supprimer les protocoles dangereux
         $input = preg_replace('/javascript\s*:/i', '', $input);
-        $input = preg_replace('/vbscript\s*:/i', '', $input);
-        $input = preg_replace('/on\w+\s*=/i', '', $input);   // onclick=, onerror=…
-        $input = preg_replace('/data\s*:/i', '', $input);
+        $input = preg_replace('/vbscript\s*:/i',   '', $input);
+        $input = preg_replace('/on\w+\s*=/i',      '', $input);  // onclick=, onerror=…
+        $input = preg_replace('/data\s*:/i',        '', $input);
 
         return trim($input);
     }
 
     /**
-     * Nettoyer un tableau de champs
+     * Nettoyer un tableau de champs.
      */
     public static function cleanAll(array $data): array
     {
@@ -118,7 +226,7 @@ class XssGuard
     }
 
     /**
-     * Détecter sans nettoyer (pour les logs)
+     * Détecter sans nettoyer (pour les logs).
      */
     public static function detect(string $input): bool
     {
@@ -144,7 +252,7 @@ class XssGuard
 class JwtService
 {
     /**
-     * Générer un JWT HS256
+     * Générer un JWT HS256.
      */
     public static function generate(array $payload): string
     {
@@ -164,8 +272,8 @@ class JwtService
     }
 
     /**
-     * Valider et décoder un JWT
-     * Retourne le payload ou lève une exception
+     * Valider et décoder un JWT.
+     * Retourne le payload ou lève une exception HTTP 401.
      */
     public static function validate(string $token): array
     {
@@ -200,7 +308,7 @@ class JwtService
     }
 
     /**
-     * Extraire + valider le JWT depuis l'en-tête Authorization
+     * Extraire + valider le JWT depuis l'en-tête Authorization.
      */
     public static function requireAuth(): array
     {
@@ -212,22 +320,28 @@ class JwtService
     }
 
     /**
-     * Révoquer un JWT (logout, changement de mot de passe…)
+     * Révoquer un JWT (logout, changement de mot de passe…).
      */
     public static function revoke(string $jti): void
     {
-        $pdo = getPDO();
+        $pdo  = getPDO();
         $stmt = $pdo->prepare(
             'INSERT IGNORE INTO jwt_blacklist (jti, expire_at) VALUES (:jti, FROM_UNIXTIME(:exp))'
         );
         $stmt->execute([':jti' => $jti, ':exp' => time() + JWT_EXPIRY]);
     }
 
+    // ----------------------------------------------------------------
+    //  Méthodes privées
+    // ----------------------------------------------------------------
+
     private static function isBlacklisted(string $jti): bool
     {
         if (!$jti) return false;
         $pdo  = getPDO();
-        $stmt = $pdo->prepare('SELECT id FROM jwt_blacklist WHERE jti = :jti AND expire_at > NOW()');
+        $stmt = $pdo->prepare(
+            'SELECT id FROM jwt_blacklist WHERE jti = :jti AND expire_at > NOW()'
+        );
         $stmt->execute([':jti' => $jti]);
         return (bool) $stmt->fetch();
     }
@@ -250,15 +364,15 @@ class JwtService
 class LogService
 {
     /**
-     * Écrire un événement de sécurité en base + fichier
+     * Écrire un événement de sécurité en base + fichier de secours.
      */
     public static function write(
-        string $type,
-        string $message,
+        string  $type,
+        string  $message,
         ?string $compte = null,
         ?string $ip     = null
     ): void {
-        $ip      = $ip ?? getIP();
+        $ip      = $ip     ?? getIP();
         $compte  = $compte ?? '';
         $created = date('Y-m-d H:i:s');
 
@@ -291,14 +405,22 @@ class LogService
     }
 
     /**
-     * Créer une alerte de sécurité (SQL, XSS, brute-force…)
+     * Créer une alerte de sécurité en base.
+     * La sévérité est désormais calculée dynamiquement par SqlGuard::severite()
+     * et transmise ici — elle n'est plus codée en dur.
+     *
+     * @param string $type        Catégorie technique  (ex: "sql_injection", "xss", "brute_force")
+     * @param string $titre       Titre lisible de l'alerte
+     * @param string $description Description détaillée (payload, contexte…)
+     * @param string $severite    Niveau calculé : "faible" | "moyenne" | "haute" | "critique"
+     * @param string|null $ip     IP source (auto-détectée si null)
      */
     public static function creerAlerte(
-        string $type,
-        string $titre,
-        string $description,
-        string $severite = 'haute',
-        ?string $ip = null
+        string  $type,
+        string  $titre,
+        string  $description,
+        string  $severite = 'faible',   // ← plus de 'haute' en dur
+        ?string $ip       = null
     ): void {
         $pdo  = getPDO();
         $stmt = $pdo->prepare(
@@ -322,16 +444,17 @@ class LogService
 class RateLimiter
 {
     /**
-     * Vérifier si une IP/compte a dépassé sa limite de tentatives
-     * @param string $key       Identifiant unique (IP, compte…)
-     * @param int    $max       Nombre max de tentatives
-     * @param int    $window    Fenêtre temporelle en secondes
+     * Vérifier si une IP/compte a dépassé sa limite de tentatives.
+     *
+     * @param string $key     Identifiant unique (IP, compte…)
+     * @param int    $max     Nombre max de tentatives
+     * @param int    $window  Fenêtre temporelle en secondes
      */
     public static function check(string $key, int $max, int $window): void
     {
         $pdo = getPDO();
 
-        // Nettoyer les anciennes entrées
+        // Nettoyer les anciennes entrées expirées
         $pdo->prepare('DELETE FROM rate_limit WHERE expire_at < NOW()')->execute();
 
         $stmt = $pdo->prepare(
@@ -347,7 +470,7 @@ class RateLimiter
     }
 
     /**
-     * Incrémenter le compteur de tentatives
+     * Incrémenter le compteur de tentatives.
      */
     public static function increment(string $key, int $window): void
     {
@@ -361,7 +484,7 @@ class RateLimiter
     }
 
     /**
-     * Réinitialiser le compteur (après succès)
+     * Réinitialiser le compteur (après succès d'authentification).
      */
     public static function reset(string $key): void
     {

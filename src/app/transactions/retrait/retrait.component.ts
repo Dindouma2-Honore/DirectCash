@@ -1,12 +1,42 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import {
+  ReactiveFormsModule, FormBuilder, FormGroup,
+  Validators, AbstractControl, ValidationErrors
+} from '@angular/forms';
 import { TransactionService } from '../../shared/services/transaction.service';
 import { CompteService } from '../../shared/services/compte.service';
 import { AuthService } from '../../shared/services/auth.service';
 import { ToastService } from '../../shared/services/toast.service';
 
 type Etape = 'formulaire' | 'otp';
+
+// ── Correspondance opérateur → préfixes Cameroun ──────────────────
+const PREFIXES_OPERATEUR: Record<string, RegExp> = {
+  orange_money: /^(69[0-9]|65[5-9]|68[5-9])\d{6}$/,   
+  mtn_momo:     /^(67[0-9]|65[0-4]|68[0-3])\d{6}$/,  
+  virement:     /^[0-9]{9}$/,                  // n'importe quel numéro valide 9 chiffres
+  agence:       /^[0-9]{9}$/,
+};
+
+const LABEL_OPERATEUR: Record<string, string> = {
+  orange_money: 'Orange Money',
+  mtn_momo:     'MTN MoMo ',
+  virement:     'Numéro de compte bancaire',
+  agence:       'Numéro de téléphone',
+};
+
+function telephoneValidator(control: AbstractControl): ValidationErrors | null {
+  // Le validateur a besoin du groupe parent pour lire le mode
+  const group = control.parent as FormGroup | null;
+  if (!group) return null;
+  const mode = group.get('mode')?.value as string;
+  const valeur = (control.value ?? '').replace(/\s/g, '');
+  if (!valeur) return null;              // requis géré par Validators.required
+  const regex = PREFIXES_OPERATEUR[mode];
+  if (!regex) return null;
+  return regex.test(valeur) ? null : { telephoneInvalide: true };
+}
 
 @Component({
   selector: 'app-retrait',
@@ -20,10 +50,16 @@ export class RetraitComponent implements OnInit {
   otpCodes = ['', '', '', '', '', ''];
 
   // ── Signals ──────────────────────────────────────────────────────
-  etape        = signal<Etape>('formulaire');
-  loading      = signal(false);
-  erreur       = signal('');
-  emailMasque  = signal('');
+  etape       = signal<Etape>('formulaire');
+  loading     = signal(false);
+  erreur      = signal('');
+  emailMasque = signal('');
+
+  // ── Hint dynamique pour le champ téléphone ───────────────────────
+  readonly hintTelephone = computed(() => {
+    const mode = this.form?.get('mode')?.value as string;
+    return LABEL_OPERATEUR[mode] ?? 'Numéro de téléphone';
+  });
 
   plafonds = [
     { label: 'Journalier',    utilise: 50000,  max: 500000  },
@@ -39,18 +75,44 @@ export class RetraitComponent implements OnInit {
     private toast: ToastService
   ) {
     this.form = this.fb.group({
-      montant: [null as number | null, [Validators.required, Validators.min(500)]],
-      mode:    ['orange_money', Validators.required],
-      pin:     ['', [Validators.required, Validators.minLength(4)]],
+      montant:   [null as number | null, [Validators.required, Validators.min(500)]],
+      mode:      ['orange_money', Validators.required],
+      telephone: ['', [Validators.required, telephoneValidator]],
+      pin:       ['', [Validators.required, Validators.minLength(4)]],
     });
   }
 
-  ngOnInit() { this.compte.charger().subscribe(); }
+  ngOnInit() {
+    this.compte.charger().subscribe();
+
+    // Quand le mode change → re-valider le téléphone
+    this.form.get('mode')!.valueChanges.subscribe(() => {
+      this.form.get('telephone')!.updateValueAndValidity();
+    });
+  }
 
   isInvalid(f: string) {
     const c = this.form.get(f)!;
     return c.invalid && (c.dirty || c.touched);
   }
+
+  erreurTelephone(): string {
+    const ctrl = this.form.get('telephone')!;
+    if (!ctrl.dirty && !ctrl.touched) return '';
+    if (ctrl.hasError('required')) return 'Numéro de téléphone invalide.';
+    if (ctrl.hasError('telephoneInvalide')) {
+      const mode = this.form.get('mode')!.value as string;
+      const hints: Record<string, string> = {
+        orange_money: 'Le numero est invalide',
+        mtn_momo:     'Le numero est invalide',
+        virement:     'Numéro invalide (9 chiffres attendus)',
+        agence:       'Numéro invalide (9 chiffres attendus)',
+      };
+      return hints[mode] ?? 'Numéro invalide.';
+    }
+    return '';
+  }
+
   pct(p: any)      { return Math.min(100, (p.utilise / p.max) * 100); }
   barColor(p: any) { return this.pct(p) > 80 ? '#ff5252' : '#e8b84b'; }
 
@@ -69,7 +131,7 @@ export class RetraitComponent implements OnInit {
     }
   }
 
-  // ── Étape 1 : soumettre le formulaire → vérifier PIN ────────────
+  // ── Étape 1 : vérifier PIN puis envoyer OTP ──────────────────────
   onSubmit() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
 
@@ -82,27 +144,21 @@ export class RetraitComponent implements OnInit {
     this.loading.set(true);
     this.erreur.set('');
 
-    // 1. Vérifier PIN côté backend — BLOQUER si erreur
     this.txService.verifierPin(this.form.value.pin!).subscribe({
-      next: () => {
-        // PIN OK → demander l'OTP par email
-        this.demanderOTP();
-      },
+      next: () => this.demanderOTP(),
       error: (err) => {
         this.loading.set(false);
         this.erreur.set(err.error?.message || 'Code PIN incorrect.');
-        // On reste sur l'étape formulaire, on ne passe PAS à l'OTP
       }
     });
   }
 
-  // ── Étape 1b : envoyer l'OTP par email ──────────────────────────
   private demanderOTP() {
     this.txService.sendOTPRetrait().subscribe({
       next: (res) => {
         this.loading.set(false);
         this.emailMasque.set(res.email_masque);
-        this.etape.set('otp'); // ← on passe à l'étape OTP seulement ici
+        this.etape.set('otp');
         this.toast.success(`Code OTP envoyé à ${res.email_masque}`);
       },
       error: () => {
@@ -121,9 +177,10 @@ export class RetraitComponent implements OnInit {
     this.erreur.set('');
 
     this.txService.retrait({
-      montant: Number(this.form.value.montant),
-      mode:    this.form.value.mode!,
-      pin:     this.form.value.pin!,
+      montant:   Number(this.form.value.montant),
+      mode:      this.form.value.mode!,
+      compte_dest: this.form.value.telephone!,
+      pin:       this.form.value.pin!,
       otp,
     }).subscribe({
       next: (res) => {
@@ -141,7 +198,6 @@ export class RetraitComponent implements OnInit {
     });
   }
 
-  // ── Retour à l'étape formulaire ──────────────────────────────────
   retourFormulaire() {
     this.etape.set('formulaire');
     this.otpCodes = ['', '', '', '', '', ''];

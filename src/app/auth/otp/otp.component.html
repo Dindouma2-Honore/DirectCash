@@ -3,7 +3,7 @@
   <div class="auth-glow"></div>
   <div class="auth-card" style="text-align:center">
 
-    <div class="otp-icon">📱</div>
+    <div class="otp-icon"><i class='bx bx-mobile' style="font-size: 50px;"></i></div>
     <h1 class="auth-title">Vérification OTP</h1>
     <p class="auth-subtitle">
       Code à 6 chiffres envoyé a<br>
@@ -23,25 +23,25 @@
 
     <div class="otp-timer">
       @if (expired()) {
-        <span class="expired">⏰ Code expiré</span>
+        <span class="expired"><i class='bx bx-timer'></i> Code expiré</span>
       } @else {
-        <span>Expire dans <strong class="countdown">{{ timerDisplay() }}</strong></span>
+        <span> <i class='bx bx-timer'></i>Expire dans <strong class="countdown">{{ timerDisplay() }}</strong></span>
       }
     </div>
 
     @if (erreur()) {
-      <div class="dc-alert danger">⚠️ {{ erreur() }}</div>
+      <div class="dc-alert danger"> {{ erreur() }}</div>
     }
 
     <button class="btn-submit" [disabled]="!codeComplet() || loading() || expired()" (click)="verifier()">
       @if (loading()) { <span class="spinner"></span> Vérification… }
-      @else { ✅ Vérifier le code }
+      @else { <i class='bx bxs-check-square'></i> Vérifier le code }
     </button>
 
     <p class="resend-text">
       Pas reçu ?
       <button class="btn-resend" [disabled]="!expired() && countdown() > 240" (click)="renvoyer()">
-        {{ renvoye() ? '✅ Renvoyé !' : 'Renvoyer' }}
+        {{ renvoye() ? ' Renvoyé !' : 'Renvoyer' }}
       </button>
     </p>
 

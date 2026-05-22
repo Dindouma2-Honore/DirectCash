@@ -18,7 +18,9 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 match (true) {
     $action === 'beneficiaires_frequents' && $method === 'GET' => beneficiairesFrequents(),
-    $action === 'depot' && $method === 'POST' => depot(),
+    $action === 'verifier_compte'         && $method === 'GET' => verifierCompte(),
+    $action === 'stats_admin'             && $method === 'GET' => statsAdmin(),
+    // $action === 'depot' && $method === 'POST' => depot(),
     $action === 'verifier_pin' && $method === 'POST' => verifierPin(),
     $action === 'send_otp_retrait' && $method === 'POST' => sendOTPRetrait(),
     $action === 'send_otp_envoi' && $method === 'POST' => sendOTPEnvoi(),
@@ -352,72 +354,6 @@ function maskEmail(string $email): string
     $stars = str_repeat('*', max(2, strlen($local) - 2));
     return "{$visible}{$stars}@{$domain}";
 }
-
-// ================================================================
-// DÉPÔT
-// ================================================================
-function depot(): void
-{
-    $payload = authentifier();
-    $d = readJSON();
-    $montant = (float) ($d['montant'] ?? 0);
-    $source = cleanXSS($d['source'] ?? '');
-    $ref = cleanXSS($d['reference_externe'] ?? '');
-
-    if ($montant < 500) {
-        jsonError('Montant minimum : 500 FCFA.', 422);
-        return;
-    }
-    if ($montant > 2000000) {
-        jsonError('Montant maximum : 2 000 000 FCFA.', 422);
-        return;
-    }
-    if (!$source) {
-        jsonError('Source requise.', 422);
-        return;
-    }
-
-    $pdo = getPDO();
-
-    $stmt = $pdo->prepare('SELECT id, numero, solde FROM comptes WHERE user_id = ?');
-    $stmt->execute([$payload['sub']]);
-    $compte = $stmt->fetch();
-    if (!$compte) {
-        jsonError('Compte introuvable.', 404);
-        return;
-    }
-
-    $code = genCodeTx();
-
-    $pdo->beginTransaction();
-    try {
-        $pdo
-            ->prepare('UPDATE comptes SET solde = solde + ? WHERE id = ?')
-            ->execute([$montant, $compte['id']]);
-
-        $pdo->prepare(
-            'INSERT INTO transactions
-               (code, type, compte_source, compte_dest, montant, frais, statut,
-                reference_externe, idempotency_key, created_at)
-             VALUES (?,?,?,?,?,0,"valide",?,?,NOW())'
-        )->execute([$code, 'depot', 'EXTERNE', $compte['numero'], $montant, $ref, $code]);
-
-        creerNotification($payload['sub'], 'Dépôt reçu',
-            "+{$montant} FCFA de {$source} — {$code}");
-
-        $pdo->commit();
-        logSec('TXN', "Dépôt +{$montant} FCFA : {$compte['numero']}");
-        jsonReponse([
-            'transaction' => ['code' => $code, 'type' => 'depot', 'montant' => $montant],
-            'nouveau_solde' => $compte['solde'] + $montant,
-        ], 201);
-    } catch (PDOException $e) {
-        $pdo->rollBack();
-        logSec('TXN', "Échec dépôt : {$e->getMessage()}");
-        jsonError('Erreur lors du dépôt.', 500);
-    }
-}
-
 // ================================================================
 // ENVOI D'ARGENT
 // ================================================================
@@ -425,32 +361,22 @@ function envoi(): void
 {
     $payload = authentifier();
     $d = readJSON();
-    $montant = (float) ($d['montant'] ?? 0);
-    $dest = trim(cleanXSS($d['compte_dest'] ?? ''));
-    $motif = cleanXSS($d['motif'] ?? '');
-    $idemKey = cleanXSS($d['idempotency_key'] ?? '');
-    $otp = trim($d['otp'] ?? '');
+    $montant   = (float) ($d['montant']         ?? 0);
+    $dest      = trim(cleanXSS($d['compte_dest'] ?? ''));
+    $motif     = cleanXSS($d['motif']            ?? '');
+    $idemKey   = cleanXSS($d['idempotency_key']  ?? '');
+    $otp       = trim($d['otp']                  ?? '');
+    $modeEnvoi = cleanXSS($d['mode_envoi']       ?? 'compte');   // 'compte' | 'telephone'
+    $operateur = cleanXSS($d['operateur']         ?? '');
 
-    if ($montant < 100) {
-        jsonError('Montant minimum : 100 FCFA.', 422);
-        return;
-    }
-    if (!$dest) {
-        jsonError('Compte destinataire requis.', 422);
-        return;
-    }
-    if (!$idemKey) {
-        jsonError("Clé d'idempotence manquante.", 422);
-        return;
-    }
-    if (strlen($otp) !== 6) {
-        jsonError('Code OTP requis.', 422);
-        return;
-    }
+    if ($montant < 100)  { jsonError('Montant minimum : 100 FCFA.', 422); return; }
+    if (!$dest)          { jsonError('Destinataire requis.', 422); return; }
+    if (!$idemKey)       { jsonError("Clé d'idempotence manquante.", 422); return; }
+    if (strlen($otp) !== 6) { jsonError('Code OTP requis.', 422); return; }
 
     $pdo = getPDO();
 
-    // Idempotence
+    // ── Idempotence ───────────────────────────────────────────────
     $stmt = $pdo->prepare('SELECT result_json FROM idempotency_keys WHERE cle = ? AND user_id = ?');
     $stmt->execute([$idemKey, $payload['sub']]);
     if ($existing = $stmt->fetch()) {
@@ -458,7 +384,7 @@ function envoi(): void
         return;
     }
 
-    // Vérifier OTP
+    // ── Vérifier OTP ──────────────────────────────────────────────
     $stmt = $pdo->prepare(
         'SELECT id FROM otps
          WHERE user_id = ? AND code_hash = ? AND utilise = 0 AND expire_a > NOW()
@@ -467,30 +393,47 @@ function envoi(): void
     $stmt->execute([$payload['sub'], hash('sha256', $otp)]);
     $otpRow = $stmt->fetch();
     if (!$otpRow) {
-        logSec('FAIL', "OTP email invalide ou expiré — retrait uid={$payload['sub']}");
+        logSec('FAIL', "OTP invalide ou expiré — envoi uid={$payload['sub']}");
         jsonError('Code OTP invalide ou expiré.', 401);
         return;
     }
-
-    // Consommer l'OTP (usage unique)
-    $pdo
-        ->prepare('UPDATE otps SET utilise = 1, utilise_a = NOW() WHERE id = ?')
+    $pdo->prepare('UPDATE otps SET utilise = 1, utilise_a = NOW() WHERE id = ?')
         ->execute([$otpRow['id']]);
 
-    // Vérifier destinataire
-    $stmt = $pdo->prepare('SELECT id, numero, solde FROM comptes WHERE numero = ?');
-    $stmt->execute([$dest]);
-    $compteDest = $stmt->fetch();
-    if (!$compteDest) {
-        jsonError('Compte destinataire introuvable.', 404);
-        return;
+    // ── Résoudre le destinataire selon le mode ────────────────────
+    $compteDest   = null;  
+    $destNumero   = null;   
+       $destLabel    = $dest; 
+
+    if ($modeEnvoi === 'compte') {
+        // Vérifier que le compte MyDirectCash existe
+        $stmt = $pdo->prepare('SELECT id, numero, solde FROM comptes WHERE numero = ?');
+        $stmt->execute([$dest]);
+        $compteDest = $stmt->fetch();
+        if (!$compteDest) {
+            jsonError('Compte destinataire introuvable.', 404);
+            return;
+        }
+        $destNumero = $compteDest['numero'];
+        $destLabel  = $compteDest['numero'];
+    } else {
+        
+        $destNumero = preg_replace('/\s+/', '', $dest);
+        $destLabel  = "{$operateur}:{$destNumero}";
     }
 
+    // ── Transaction ───────────────────────────────────────────────
     $pdo->beginTransaction();
     try {
         $stmt = $pdo->prepare('SELECT id, numero, solde FROM comptes WHERE user_id = ? FOR UPDATE');
         $stmt->execute([$payload['sub']]);
         $compteSource = $stmt->fetch();
+
+        if ($modeEnvoi === 'compte' && $compteSource['numero'] === $destNumero) {
+            $pdo->rollBack();
+            jsonError("Impossible d'envoyer à son propre compte.", 422);
+            return;
+        }
 
         $frais = round($montant * 0.005, 0);
         $total = $montant + $frais;
@@ -500,26 +443,35 @@ function envoi(): void
             jsonError('Solde insuffisant.', 402);
             return;
         }
-        if ($compteSource['numero'] === $dest) {
-            $pdo->rollBack();
-            jsonError("Impossible d'envoyer à son propre compte.", 422);
-            return;
-        }
 
         $code = genCodeTx();
 
-        $pdo
-            ->prepare('UPDATE comptes SET solde = solde - ? WHERE id = ?')
+        // Débiter la source
+        $pdo->prepare('UPDATE comptes SET solde = solde - ? WHERE id = ?')
             ->execute([$total, $compteSource['id']]);
-        $pdo
-            ->prepare('UPDATE comptes SET solde = solde + ? WHERE id = ?')
-            ->execute([$montant, $compteDest['id']]);
 
+        // Créditer le destinataire seulement si c'est un compte MyDirectCash
+        if ($modeEnvoi === 'compte' && $compteDest) {
+            $pdo->prepare('UPDATE comptes SET solde = solde + ? WHERE id = ?')
+                ->execute([$montant, $compteDest['id']]);
+        }
+
+        // Insérer la transaction
         $pdo->prepare(
             'INSERT INTO transactions
-               (code,type,compte_source,compte_dest,montant,frais,motif,statut,idempotency_key,created_at)
-             VALUES (?,?,?,?,?,?,?,"valide",?,NOW())'
-        )->execute([$code, 'envoi', $compteSource['numero'], $dest, $montant, $frais, $motif, $idemKey]);
+               (code, type, compte_source, compte_dest, montant, frais,
+                motif, statut, idempotency_key, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, "valide", ?, NOW())'
+        )->execute([
+            $code,
+            'envoi',
+            $compteSource['numero'],
+            $destNumero,
+            $montant,
+            $frais,
+            $motif,
+            $idemKey
+        ]);
 
         $result = [
             'transaction' => ['code' => $code, 'type' => 'envoi', 'montant' => $montant],
@@ -530,11 +482,12 @@ function envoi(): void
         )->execute([$idemKey, $payload['sub'], json_encode($result)]);
 
         creerNotification($payload['sub'], 'Envoi effectué',
-            "-{$montant} FCFA → {$dest} — {$code}");
+            "-{$montant} FCFA → {$destLabel} — {$code}");
 
         $pdo->commit();
-        logSec('TXN', "Envoi {$compteSource['numero']} → {$dest} : {$montant} FCFA");
+        logSec('TXN', "Envoi {$compteSource['numero']} → {$destLabel} : {$montant} FCFA");
         jsonReponse($result, 201);
+
     } catch (PDOException $e) {
         $pdo->rollBack();
         logSec('TXN', "Échec envoi : {$e->getMessage()}");
@@ -545,23 +498,68 @@ function envoi(): void
 // ================================================================
 // RETRAIT  ← OTP désormais reçu par EMAIL (via sendOTPRetrait)
 // ================================================================
+// ── Règles préfixes Cameroun ─────────────────────────────────────
+const PREFIXES_OPERATEUR = [
+    'orange_money' => '/^(69[0-9]|65[0-9]|68[6-9])\d{6}$/',  // 69X ou 65X
+    'mtn_momo'     => '/^(67[0-9]|68[0-9]|68[0-5])\d{6}$/',  // 67X ou 68X
+    'virement'     => '/^[0-9]{9}$/',                  // 9 chiffres quelconques
+    'agence'       => '/^[0-9]{9}$/',
+];
+ 
+function validerTelephoneOperateur(string $telephone, string $mode): bool
+{
+    $tel = preg_replace('/\s+/', '', $telephone);  // supprimer espaces
+    $patterns = [
+        'orange_money' => '/^(69[0-9]|65[5-9]|68[5-9])\d{6}$/',
+        'mtn_momo'     => '/^(67[0-9]|65[0-4]|68[0-3])\d{6}$/',
+        'virement'     => '/^[0-9]{9}$/',
+        'agence'       => '/^[0-9]{9}$/',
+    ];
+    if (!isset($patterns[$mode])) return false;
+    return (bool) preg_match($patterns[$mode], $tel);
+}
+ 
 function retrait(): void
 {
     $payload = authentifier();
     $d = readJSON();
-    $montant = (float) ($d['montant'] ?? 0);
-    $mode = cleanXSS($d['mode'] ?? '');
-    $pin = trim($d['pin'] ?? '');
-    $otp = trim($d['otp'] ?? '');
-
+    $montant   = (float) ($d['montant']   ?? 0);
+    $mode      = cleanXSS($d['mode']      ?? '');
+    $telephone = cleanXSS($d['compte_dest'] ?? '');
+    $pin       = trim($d['pin']           ?? '');
+    $otp       = trim($d['otp']           ?? '');
+ 
+    // ── Validations de base ───────────────────────────────────────
     if ($montant < 500) {
         jsonError('Montant minimum : 500 FCFA.', 422);
         return;
     }
-    if (!$mode) {
-        jsonError('Mode de retrait requis.', 422);
+ 
+    $modesValides = ['orange_money', 'mtn_momo', 'virement', 'agence'];
+    if (!in_array($mode, $modesValides, true)) {
+        jsonError('Mode de retrait invalide.', 422);
         return;
     }
+ 
+    if (!$telephone) {
+        jsonError('Numéro de téléphone requis.', 422);
+        return;
+    }
+ 
+    // ── Validation numéro selon opérateur ────────────────────────
+    if (!validerTelephoneOperateur($telephone, $mode)) {
+        $messages = [
+            'orange_money' => 'Numéro Orange Money invalide',
+            'mtn_momo'     => 'Numéro MTN MoMo invalide.',
+            'virement'     => 'Numéro de compte invalide (9 chiffres attendus).',
+            'agence'       => 'Numéro de téléphone invalide (9 chiffres attendus).',
+        ];
+        $msg = $messages[$mode] ?? 'Numéro de téléphone invalide.';
+        logSec('FAIL', "Numéro téléphone invalide mode={$mode} compte_dest={$telephone} uid={$payload['sub']}");
+        jsonError($msg, 422);
+        return;
+    }
+ 
     if (strlen($pin) < 4) {
         jsonError('PIN requis (4-6 chiffres).', 422);
         return;
@@ -570,9 +568,9 @@ function retrait(): void
         jsonError('Code OTP requis.', 422);
         return;
     }
-
+ 
     $pdo = getPDO();
-
+ 
     // ── 1. Vérifier PIN ───────────────────────────────────────────
     $stmt = $pdo->prepare('SELECT pin_hash FROM utilisateurs WHERE id = ?');
     $stmt->execute([$payload['sub']]);
@@ -582,8 +580,8 @@ function retrait(): void
         jsonError('Code PIN incorrect.', 401);
         return;
     }
-
-    // ── 2. Vérifier OTP reçu par email ───────────────────────────
+ 
+    // ── 2. Vérifier OTP ───────────────────────────────────────────
     $stmt = $pdo->prepare(
         'SELECT id FROM otps
          WHERE user_id = ? AND code_hash = ? AND utilise = 0 AND expire_a > NOW()
@@ -596,12 +594,11 @@ function retrait(): void
         jsonError('Code OTP invalide ou expiré.', 401);
         return;
     }
-
-    // Consommer l'OTP (usage unique)
-    $pdo
-        ->prepare('UPDATE otps SET utilise = 1, utilise_a = NOW() WHERE id = ?')
+ 
+    // Consommer l'OTP
+    $pdo->prepare('UPDATE otps SET utilise = 1, utilise_a = NOW() WHERE id = ?')
         ->execute([$otpRow['id']]);
-
+ 
     // ── 3. Transaction sécurisée ──────────────────────────────────
     $pdo->beginTransaction();
     try {
@@ -610,34 +607,48 @@ function retrait(): void
         );
         $stmt->execute([$payload['sub']]);
         $compte = $stmt->fetch();
-
+ 
         if ($compte['solde'] < $montant) {
             $pdo->rollBack();
             jsonError('Solde insuffisant.', 402);
             return;
         }
-
+ 
         $code = genCodeTx();
-
-        $pdo
-            ->prepare('UPDATE comptes SET solde = solde - ? WHERE id = ?')
+        $telNormalise = preg_replace('/\s+/', '', $telephone);
+ 
+        $pdo->prepare('UPDATE comptes SET solde = solde - ? WHERE id = ?')
             ->execute([$montant, $compte['id']]);
-
+ 
         $pdo->prepare(
             'INSERT INTO transactions
-               (code, type, compte_source, montant, frais, mode_retrait, statut, idempotency_key, created_at)
-             VALUES (?,?,?,?,0,?,"valide",?,NOW())'
-        )->execute([$code, 'retrait', $compte['numero'], $montant, $mode, $code]);
-
-        creerNotification($payload['sub'], 'Retrait effectué',
-            "-{$montant} FCFA via {$mode} — {$code}");
-
+               (code, type, compte_source, montant, frais, mode_retrait,
+                compte_dest, statut, idempotency_key, created_at)
+             VALUES (?,?,?,?,0,?,?,"valide",?,NOW())'
+        )->execute([
+            $code, 'retrait', $compte['numero'],
+            $montant, $mode, $telNormalise, $code
+        ]);
+ 
+        creerNotification(
+            $payload['sub'],
+            'Retrait effectué',
+            "-{$montant} FCFA via {$mode} → {$telNormalise} — {$code}"
+        );
+ 
         $pdo->commit();
-        logSec('TXN', "Retrait -{$montant} FCFA : {$compte['numero']}");
+        logSec('TXN', "Retrait -{$montant} FCFA : {$compte['numero']} → {$mode}:{$telNormalise}");
         jsonReponse([
-            'transaction' => ['code' => $code, 'type' => 'retrait', 'montant' => $montant],
+            'transaction' => [
+                'code'      => $code,
+                'type'      => 'retrait',
+                'montant'   => $montant,
+                'compte_dest' => $telNormalise,
+                'mode'      => $mode,
+            ],
             'nouveau_solde' => $compte['solde'] - $montant,
         ], 201);
+ 
     } catch (PDOException $e) {
         $pdo->rollBack();
         logSec('TXN', "Échec retrait : {$e->getMessage()}");
@@ -734,6 +745,101 @@ function historique(): void
 
     jsonReponse(['data' => $stmt->fetchAll(), 'total' => $total, 'page' => $page, 'limit' => $limit]);
 }
+// ================================================================
+// STATS GLOBALES ADMIN — solde total, envois/retraits du mois, 5 dernières tx
+// ================================================================
+function statsAdmin(): void
+{
+    requireRole('admin', 'gestionnaire');
+    $pdo = getPDO();
+
+    // ── Solde total de tous les comptes ─────────────────────────
+    $stmtSolde = $pdo->query('SELECT COALESCE(SUM(solde), 0) AS solde_total FROM comptes');
+    $soldeTotal = (float) $stmtSolde->fetchColumn();
+
+    // ── Envois du mois en cours ─────────────────────────────────
+    $stmtEnvois = $pdo->prepare(
+        "SELECT COALESCE(SUM(montant), 0) AS total_montant, COUNT(*) AS total_nombre
+         FROM transactions
+         WHERE type = 'envoi'
+           AND statut = 'valide'
+           AND YEAR(created_at)  = YEAR(CURDATE())
+           AND MONTH(created_at) = MONTH(CURDATE())"
+    );
+    $stmtEnvois->execute();
+    $envois = $stmtEnvois->fetch();
+
+    // ── Retraits du mois en cours ───────────────────────────────
+    $stmtRetraits = $pdo->prepare(
+        "SELECT COALESCE(SUM(montant), 0) AS total_montant, COUNT(*) AS total_nombre
+         FROM transactions
+         WHERE type = 'retrait'
+           AND statut = 'valide'
+           AND YEAR(created_at)  = YEAR(CURDATE())
+           AND MONTH(created_at) = MONTH(CURDATE())"
+    );
+    $stmtRetraits->execute();
+    $retraits = $stmtRetraits->fetch();
+
+    // ── 5 dernières transactions toutes catégories confondues ───
+    $stmtTx = $pdo->query(
+        "SELECT t.id, t.code, t.type, t.compte_source, t.compte_dest,
+                t.montant, t.frais, t.motif, t.statut, t.created_at,
+                u_src.nom AS nom_source, u_src.prenom AS prenom_source
+         FROM transactions t
+         LEFT JOIN comptes  c_src  ON c_src.numero  = t.compte_source
+         LEFT JOIN utilisateurs u_src ON u_src.id   = c_src.user_id
+         ORDER BY t.created_at DESC
+         LIMIT 5"
+    );
+    $dernieresTx = $stmtTx->fetchAll();
+
+    jsonReponse([
+        'solde_total'   => $soldeTotal,
+        'envois'        => [
+            'total_montant' => (float) $envois['total_montant'],
+            'total_nombre'  => (int)   $envois['total_nombre'],
+        ],
+        'retraits'      => [
+            'total_montant' => (float) $retraits['total_montant'],
+            'total_nombre'  => (int)   $retraits['total_nombre'],
+        ],
+        'dernieres_tx'  => $dernieresTx,
+    ]);
+}
+
+// ================================================================
+// VÉRIFIER UN COMPTE MYDIRECTCASH — retourne nom + prénom du titulaire
+// ================================================================
+function verifierCompte(): void
+{
+    authentifier(); // token requis
+    $numero = trim(cleanXSS($_GET['numero'] ?? ''));
+
+    if (!$numero || !preg_match('/^DC-\d{3}-\d{4}$/', $numero)) {
+        jsonError('Numéro de compte invalide.', 422);
+        return;
+    }
+
+    $pdo  = getPDO();
+    $stmt = $pdo->prepare(
+        'SELECT u.nom, u.prenom
+         FROM comptes c
+         JOIN utilisateurs u ON u.id = c.user_id
+         WHERE c.numero = ?
+         LIMIT 1'
+    );
+    $stmt->execute([$numero]);
+    $row = $stmt->fetch();
+
+    if (!$row) {
+        jsonError('Compte introuvable.', 404);
+        return;
+    }
+
+    jsonReponse(['nom' => $row['nom'], 'prenom' => $row['prenom']]);
+}
+
 // ================================================================
 // BÉNÉFICIAIRES FRÉQUENTS (top 10 destinataires d'envois)
 // ================================================================
@@ -839,6 +945,72 @@ function creerNotification(int $userId, string $titre, string $corps): void
     } catch (PDOException) {
     }
 }
+
+// ================================================================
+// DÉPÔT
+// ================================================================
+// function depot(): void
+// {
+//     $payload = authentifier();
+//     $d = readJSON();
+//     $montant = (float) ($d['montant'] ?? 0);
+//     $source = cleanXSS($d['source'] ?? '');
+//     $ref = cleanXSS($d['reference_externe'] ?? '');
+
+//     if ($montant < 500) {
+//         jsonError('Montant minimum : 500 FCFA.', 422);
+//         return;
+//     }
+//     if ($montant > 2000000) {
+//         jsonError('Montant maximum : 2 000 000 FCFA.', 422);
+//         return;
+//     }
+//     if (!$source) {
+//         jsonError('Source requise.', 422);
+//         return;
+//     }
+
+//     $pdo = getPDO();
+
+//     $stmt = $pdo->prepare('SELECT id, numero, solde FROM comptes WHERE user_id = ?');
+//     $stmt->execute([$payload['sub']]);
+//     $compte = $stmt->fetch();
+//     if (!$compte) {
+//         jsonError('Compte introuvable.', 404);
+//         return;
+//     }
+
+//     $code = genCodeTx();
+
+//     $pdo->beginTransaction();
+//     try {
+//         $pdo
+//             ->prepare('UPDATE comptes SET solde = solde + ? WHERE id = ?')
+//             ->execute([$montant, $compte['id']]);
+
+//         $pdo->prepare(
+//             'INSERT INTO transactions
+//                (code, type, compte_source, compte_dest, montant, frais, statut,
+//                 reference_externe, idempotency_key, created_at)
+//              VALUES (?,?,?,?,?,0,"valide",?,?,NOW())'
+//         )->execute([$code, 'depot', 'EXTERNE', $compte['numero'], $montant, $ref, $code]);
+
+//         creerNotification($payload['sub'], 'Dépôt reçu',
+//             "+{$montant} FCFA de {$source} — {$code}");
+
+//         $pdo->commit();
+//         logSec('TXN', "Dépôt +{$montant} FCFA : {$compte['numero']}");
+//         jsonReponse([
+//             'transaction' => ['code' => $code, 'type' => 'depot', 'montant' => $montant],
+//             'nouveau_solde' => $compte['solde'] + $montant,
+//         ], 201);
+//     } catch (PDOException $e) {
+//         $pdo->rollBack();
+//         logSec('TXN', "Échec dépôt : {$e->getMessage()}");
+//         jsonError('Erreur lors du dépôt.', 500);
+//     }
+// }
+
 
 // =====================================
 //  action=stats_mois

@@ -49,6 +49,7 @@
   font-weight: 700; padding: 1px 4px; border-radius: 20px;
   font-family: 'JetBrains Mono', monospace;
 }
+i{color: white;}
 .notif-overlay {
   position: fixed; inset: 0; z-index: 199;
 }
@@ -63,7 +64,7 @@
   padding: .875rem 1rem; border-bottom: 1px solid #1c2a3e;
   display: flex; justify-content: space-between; align-items: center;
 }
-.notif-header-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: .875rem; color: #e8eaf0; }
+.notif-header-title { font-family: 'segoe ui'; font-weight: 700; font-size: .875rem; color: #e8eaf0; }
 .notif-header-actions { display: flex; align-items: center; gap: .5rem; }
 .btn-tout-lire {
   background: none; border: none; cursor: pointer; color: #e8b84b;

@@ -1,103 +1,168 @@
-<!-- src/app/transactions/envoi/envoi.component.html -->
 <div class="page">
   <div class="section-header">
     <h1 class="section-title">Envoi d'argent</h1>
-    <p class="section-sub">Transférez vers un autre compte DirectCash</p>
+    <p class="section-sub">Transférez vers un compte MyDirectCash ou un numéro mobile</p>
   </div>
 
   <div class="two-col">
     <div class="dc-card">
       <div class="dc-card-title">Nouveau transfert</div>
-      <div class="dc-card-sub">Solde : <strong class="gold-text">{{ compte.compte()?.solde | number:'1.0-0':'fr-FR' }}
-          FCFA</strong></div>
+      <div class="dc-card-sub">Solde : <strong class="gold-text">
+        {{ compte.compte()?.solde | number:'1.0-0':'fr-FR' }} FCFA
+      </strong></div>
 
       <form [formGroup]="form" (ngSubmit)="onSubmit()">
 
+        <!-- ── Sélecteur de mode ── -->
         <div class="field-group">
-          <label class="dc-label">Compte destinataire</label>
-          <input class="dc-input" formControlName="compte_dest" [class.input-error]="isInvalid('compte_dest')"
-            placeholder="DC-237-XXXX" (blur)="verifierDest()">
-          @if (destInfo()) { <span class="field-success">✅ {{ destInfo() }} — compte vérifié</span> }
-          @if (isInvalid('compte_dest')) { <span class="field-error">Format DC-237-XXXX requis</span> }
+          <label class="dc-label">Type d'envoi</label>
+          <div class="mode-toggle">
+            <button type="button"
+              [class.active]="modeEnvoi() === 'compte'"
+              (click)="form.patchValue({mode_envoi:'compte'})">
+              <i class='bx bx-id-card'></i> Compte MyDirectCash
+            </button>
+            <button type="button"
+              [class.active]="modeEnvoi() === 'telephone'"
+              (click)="form.patchValue({mode_envoi:'telephone'})">
+              <i class='bx bx-phone'></i> Numéro mobile
+            </button>
+          </div>
         </div>
 
+        <!-- ── Mode compte ── -->
+        @if (modeEnvoi() === 'compte') {
+          <div class="field-group">
+            <label class="dc-label">Compte destinataire</label>
+            <input class="dc-input" formControlName="compte_dest"
+              [class.input-error]="isInvalid('compte_dest')"
+              placeholder="DC-237-XXXX" (blur)="verifierDest()">
+            @if (loadingDest()) {
+              <span class="field-hint"><span class="spinner-sm"></span> Vérification en cours…</span>
+            }
+            @if (destInfo() && !loadingDest()) {
+              <span class="field-success"><i class='bx bx-check'></i> {{ destInfo() }} — compte vérifié</span>
+            }
+            @if (isInvalid('compte_dest')) {
+              <span class="field-error">Format DC-237-XXXX requis</span>
+            }
+          </div>
+        }
+
+        <!-- ── Mode téléphone ── -->
+        @if (modeEnvoi() === 'telephone') {
+          <div class="field-group">
+            <label class="dc-label">Opérateur</label>
+            <select class="dc-select" formControlName="operateur">
+              <option value="orange_money">Orange Money</option>
+              <option value="mtn_momo">MTN MoMo</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label class="dc-label">{{ hintTelephone() }}</label>
+            <div class="input-wrap">
+              <span class="input-pfx"><i class='bx bx-phone'></i></span>
+              <input class="dc-input has-pfx mono" formControlName="telephone" type="tel"
+                placeholder="6XXXXXXXX"
+                [class.input-error]="isInvalid('telephone')">
+            </div>
+            @if (erreurTelephone()) {
+              <span class="field-error">{{ erreurTelephone() }}</span>
+            }
+          </div>
+        }
+
+        <!-- ── Montant ── -->
         <div class="field-group">
           <label class="dc-label">Montant (FCFA)</label>
           <div class="input-wrap">
             <span class="input-pfx">₣</span>
-            <input class="dc-input has-pfx" formControlName="montant" type="number" min="100" placeholder="0"
-              [class.input-error]="isInvalid('montant')" (input)="updatePreview()">
+            <input class="dc-input has-pfx" formControlName="montant" type="number"
+              min="100" placeholder="0"
+              [class.input-error]="isInvalid('montant')"
+              (input)="updatePreview()">
           </div>
-          @if (isInvalid('montant')) { <span class="field-error">Minimum 100 FCFA</span> }
+          @if (isInvalid('montant')) {
+            <span class="field-error">Minimum 100 FCFA</span>
+          }
         </div>
 
-        
-
-        <!-- Récapitulatif -->
+        <!-- ── Récapitulatif ── -->
         <div class="recap">
-          <div class="recap-row"><span>Montant envoyé</span><span class="mono">{{ montant() | number:'1.0-0':'fr-FR' }}
-              FCFA</span></div>
-          <div class="recap-row"><span>Frais (0.5 %)</span><span class="mono">{{ frais() | number:'1.0-0':'fr-FR' }}
-              FCFA</span></div>
-          <div class="recap-sep"></div>
-          <div class="recap-row total"><span>Total débité</span><span class="mono danger-text">{{ total() |
-              number:'1.0-0':'fr-FR' }} FCFA</span></div>
-        </div>
-
-        <!-- Clé d'idempotence -->
-        <!-- <div class="idem-block">
-          <span class="idem-label">Clé d'idempotence (anti-double paiement)</span>
-          <span class="idem-val">{{ idemKey() }}</span>
-        </div> -->
-
-        <!-- OTP de confirmation -->
-        @if (showOtp()) {
-        <div class="field-group">
-          <label class="dc-label">Code OTP de confirmation</label>
-          <div class="otp-row">
-            @for (i of [0,1,2,3,4,5]; track i) {
-            <input class="otp-box" [id]="'eotp'+i" maxlength="1" (input)="otpInput($event,i)"
-              (keydown)="otpKey($event,i)">
-            }
+          @if (modeEnvoi() === 'compte' && nomDest()) {
+            <div class="recap-row">
+              <span>Destinataire</span>
+              <span class="mono" style="color: var(--color-success, #22c55e); font-weight: 600;">
+                <i class='bx bx-user-check'></i> {{ nomDest() }}
+              </span>
+            </div>
+          }
+          <div class="recap-row">
+            <span>Montant envoyé</span>
+            <span class="mono">{{ montant() | number:'1.0-0':'fr-FR' }} FCFA</span>
           </div>
-          <span class="field-hint">Code envoyé par Email</span>
+          <div class="recap-row">
+            <span>Frais (0.5 %)</span>
+            <span class="mono">{{ frais() | number:'1.0-0':'fr-FR' }} FCFA</span>
+          </div>
+          <div class="recap-sep"></div>
+          <div class="recap-row total">
+            <span>Total débité</span>
+            <span class="mono danger-text">{{ total() | number:'1.0-0':'fr-FR' }} FCFA</span>
+          </div>
         </div>
+
+        <!-- ── OTP ── -->
+        @if (showOtp()) {
+          <div class="field-group">
+            <label class="dc-label">Code OTP de confirmation</label>
+            <div class="otp-row">
+              @for (i of [0,1,2,3,4,5]; track i) {
+                <input class="otp-box" [id]="'eotp'+i" maxlength="1"
+                  (input)="otpInput($event,i)" (keydown)="otpKey($event,i)">
+              }
+            </div>
+            <span class="field-hint">Code envoyé par Email</span>
+          </div>
         }
 
-        @if (erreur()) { <div class="alert danger"><span>⚠️</span><span>{{ erreur() }}</span></div> }
+        @if (erreur()) {
+          <div class="alert danger">
+            <span><i class='bx bxs-error'></i></span>
+            <span>{{ erreur() }}</span>
+          </div>
+        }
 
         <button type="submit" class="btn-submit" [disabled]="form.invalid || loading()">
           @if (loading()) { <span class="spinner"></span> Envoi… }
-          @else if (!showOtp()) { ➡️ Continuer vers la confirmation }
-          @else { ✅ Confirmer le transfert }
+          @else if (!showOtp()) { <i class='bx bx-send'></i> Continuer vers la confirmation }
+          @else { <i class='bx bxs-square'></i> Confirmer le transfert }
         </button>
 
       </form>
     </div>
 
-    <!-- Bénéficiaires -->
+    <!-- ── Bénéficiaires fréquents ── -->
     <div class="dc-card">
       <div class="dc-card-title">Bénéficiaires fréquents</div>
       <div class="dc-card-sub">Cliquez pour pré-remplir</div>
       <div class="benef-list">
         @for (b of beneficiaires(); track b.compte_dest) {
-        <div class="benef-row" (click)="setDest(b)">
-          <div class="avatar">
-            {{ b.prenom[0] }}{{ b.nom[0] }}
+          <div class="benef-row" (click)="setDest(b)">
+            <div class="avatar">{{ b.prenom[0] }}{{ b.nom[0] }}</div>
+            <div class="benef-info">
+              <div class="benef-name">{{ b.prenom }} {{ b.nom }}</div>
+              <div class="benef-compte">{{ b.compte_dest }}</div>
+            </div>
+            <div class="benef-stats">
+              <span class="badge">{{ b.nb_envois }}x</span>
+            </div>
+            <span class="benef-arrow">→</span>
           </div>
-          <div class="benef-info">
-            <div class="benef-name">{{ b.prenom }} {{ b.nom }}</div>
-            <div class="benef-compte">{{ b.compte_dest }}</div>
-          </div>
-          <div class="benef-stats">
-            <span class="badge">{{ b.nb_envois }}x</span>
-          </div>
-          <span class="benef-arrow">→</span>
-        </div>
         }
-
         @if (beneficiaires().length === 0) {
-        <p class="empty-state">Aucun envoi effectué pour le moment.</p>
+          <p class="empty-state">Aucun envoi effectué pour le moment.</p>
         }
       </div>
     </div>

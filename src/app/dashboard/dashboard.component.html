@@ -3,159 +3,263 @@
 
   <!-- En-tête -->
   <div class="section-header">
-    <h1 class="section-title">Bonjour, {{ auth.user()?.prenom }} 👋</h1>
-    <p class="section-sub">Vue d'ensemble de votre compte DirectCash</p>
-  </div>
-
-  <!-- Haut : carte compte + KPIs -->
-  <div class="top-grid">
-
-    <!-- Carte bancaire -->
-    <div class="account-card">
-      <div class="card-inner">
-        <div class="card-top">
-          <div class="card-chip"></div>
-          <span class="card-brand">DIRECTCASH</span>
-        </div>
-        <div class="card-number">{{ auth.user()?.compte }} · XAF</div>
-        <div class="card-bottom">
-          <div>
-            <div class="card-owner-lbl">Titulaire</div>
-            <div class="card-owner-name">{{ auth.user()?.nom }} {{ auth.user()?.prenom }}</div>
-          </div>
-          <div class="card-balance-block">
-            <div class="card-balance-lbl">Solde disponible</div>
-            @if (compte.compte()) {
-            <div class="card-balance-val">
-              {{ compte.compte()!.solde | number:'1.0-0':'fr-FR' }} FCFA
-            </div>
-            } @else {
-            <div class="skeleton-bal"></div>
-            }
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- KPIs -->
-    <div class="kpi-grid">
-      <div class="kpi-card gold">
-        <span class="kpi-icon">💰</span>
-        <div class="kpi-label">Dépôts ce mois</div>
-        <div class="kpi-value gold-text"> {{ (totalDepotsMois().totalMontant| number:'1.0-0') || '0' }} FCFA</div>
-        <div class="kpi-meta">{{ totalDepotsMois().totalNombre }} depots </div>
-      </div>
-      <div class="kpi-card danger">
-        <span class="kpi-icon">📤</span>
-        <div class="kpi-label">Envois ce mois</div>
-        <div class="kpi-value danger-text">{{(totalEnvoiMois().totalMontant | number:'1.0-0' )|| '0'}} FCFA</div>
-        <div class="kpi-meta">{{(totalEnvoiMois().totalNombre)}} tx</div>
-      </div>
-      <div class="kpi-card teal"> 
-        <span class="kpi-icon">✅</span>
-        <div class="kpi-label">Transactions</div>
-        <div class="kpi-value teal-text"> {{txService.total() }} </div>
-        <div class="kpi-meta">100% succès</div>
-      </div>
-      <!-- <div class="kpi-card success">
-        <span class="kpi-icon">🛡️</span>
-        <div class="kpi-label">Score sécurité</div>
-        <div class="kpi-value success-text">94</div>
-        <div class="kpi-meta">/100 Enterprise</div>
-      </div> -->
-    </div>
-  </div>
-
-  <!-- Bas : transactions + accès rapides -->
-  <div class="bottom-grid">
-
-    <!-- Transactions récentes -->
-    <div class="dc-card">
-      <div class="card-header-row">
-        <div>
-          <div class="dc-card-title">Transactions récentes</div>
-          <div class="dc-card-sub">5 dernières opérations</div>
-        </div>
-        <a routerLink="/transactions/historique" class="btn-outline-sm">Voir tout →</a>
-      </div>
-
-      @if (txService.loading()) {
-      @for (i of [1,2,3]; track i) {
-      <div class="tx-skeleton"></div>
-      }
+    <h1 class="section-title">
+      Bonjour, {{ auth.user()?.prenom }} <i class='bx bx-waving-hand'></i>
+    </h1>
+    <p class="section-sub">
+      @if (auth.isAdmin()) {
+        Vue d'ensemble globale du système MyDirectCash
       } @else {
-      @for (tx of txService.transactions().slice(0, 5); track tx.id) {
-      <div class="tx-item">
-        <div class="tx-icon" [class]="tx.type">{{ txIcon(tx.type) }}</div>
-        <div class="tx-body">
-          <div class="tx-label">{{ txLabel(tx) }}</div>
-          <div class="tx-meta">{{ tx.code }} · {{ tx.created_at | date:'dd/MM/yyyy HH:mm' }}</div>
-        </div>
-        <div class="tx-right">
-          <div class="tx-amount" [class.positive]="tx.type==='depot'" [class.negative]="tx.type!=='depot'">
-            {{ tx.type === 'depot' ? '+' : '-' }}{{ tx.montant | number:'1.0-0':'fr-FR' }} FCFA
+        Vue d'ensemble de votre compte MyDirectCash
+      }
+    </p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  VUE ADMIN                                                  -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  @if (auth.isAdmin()) {
+
+    <div class="top-grid">
+      <!-- Carte admin : solde total système -->
+      <div class="account-card">
+        <div class="card-inner">
+          <div class="card-top">
+            <div class="card-chip"></div>
+            <span class="card-brand">MYDIRECTCASH · ADMIN</span>
           </div>
-          <span class="chip" [class]="tx.statut==='valide' ? 'success' : tx.statut==='en_cours' ? 'warn' : 'danger'">
-            {{ tx.statut | uppercase }}
-          </span>
-        </div>
-      </div>
-      }
-      @if (txService.transactions().length === 0) {
-      <div class="empty-state">
-        <span>📭</span>
-        <p>Aucune transaction pour l'instant</p>
-      </div>
-      }
-      }
-    </div>
-
-    <!-- Colonne droite -->
-    <div class="right-col">
-
-      <!-- Accès rapides -->
-      <div class="dc-card">
-        <div class="dc-card-title">Accès rapides</div>
-        <div class="dc-card-sub">Opérations fréquentes</div>
-        <div class="quick-btns">
-          <a routerLink="/transactions/envoi" class="btn-quick gold">➡️ Envoyer</a>
-          <a routerLink="/transactions/depot" class="btn-quick teal">⬇️ Déposer</a>
-          <a routerLink="/transactions/retrait" class="btn-quick ghost">⬆️ Retirer</a>
-        </div>
-      </div>
-
-      <!-- Mini graphique -->
-      <!-- <div class="dc-card">
-        <div class="dc-card-title">Activité mensuelle</div>
-        <div class="dc-card-sub">Flux FCFA — {{ moisLabel }}</div>
-
-        <div class="chart-legend">
-          <span class="success-text">▲ Entrées</span>
-          <span class="danger-text">▼ Sorties</span>
-        </div>
-
-        @if (chartLoading()) {
-        <div class="mini-chart-skeleton"></div>
-        } @else if (chartBars().length === 0) {
-        <div class="empty-state"><span>📊</span>
-          <p>Aucune donnée ce mois</p>
-        </div>
-        } @else {
-        <div class="mini-chart">
-          @for (bar of chartBars(); track bar.jour) {
-          <div class="bar-col" [title]="bar.jour + '/' + (totalDepotsMois().totalMontant > 0 ? '' : '') 
-                      + ' — ↑' + (bar.entrees | number:'1.0-0':'fr-FR') 
-                      + ' ↓' + (bar.sorties | number:'1.0-0':'fr-FR') + ' FCFA'">
-            <div class="bar-pair">
-              <div class="mini-bar entree" [style.height.%]="bar.pctEntree"></div>
-              <div class="mini-bar sortie" [style.height.%]="bar.pctSortie"></div>
+          <div class="card-number">{{ auth.user()?.compte }} · XAF</div>
+          <div class="card-bottom">
+            <div>
+              <div class="card-owner-lbl">Administrateur</div>
+              <div class="card-owner-name">{{ auth.user()?.nom }} {{ auth.user()?.prenom }}</div>
+            </div>
+            <div class="card-balance-block">
+              <div class="card-balance-lbl">Solde total système</div>
+              @if (adminLoading()) {
+                <div class="skeleton-bal"></div>
+              } @else if (adminStats()) {
+                <div class="card-balance-val">
+                  {{ adminStats()!.solde_total | number:'1.0-0':'fr-FR' }} FCFA
+                </div>
+              } @else {
+                <div class="card-balance-val">— FCFA</div>
+              }
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- KPIs admin -->
+      <div class="kpi-grid">
+        <div class="kpi-card danger">
+          <span class="kpi-icon"><i class='bx bx-send'></i></span>
+          <div class="kpi-label">Envois ce mois</div>
+          @if (adminLoading()) {
+            <div class="kpi-value">…</div>
+          } @else {
+            <div class="kpi-value danger-text">
+              {{ (adminStats()?.envois?.total_montant | number:'1.0-0') || '0' }} FCFA
+            </div>
+            <div class="kpi-meta">{{ adminStats()?.envois?.total_nombre || 0 }} transactions</div>
           }
         </div>
-        }
-      </div> -->
 
+        <div class="kpi-card gold">
+          <span class="kpi-icon"><i class='bx bx-money-withdraw'></i></span>
+          <div class="kpi-label">Retraits ce mois</div>
+          @if (adminLoading()) {
+            <div class="kpi-value">…</div>
+          } @else {
+            <div class="kpi-value gold-text">
+              {{ (adminStats()?.retraits?.total_montant | number:'1.0-0') || '0' }} FCFA
+            </div>
+            <div class="kpi-meta">{{ adminStats()?.retraits?.total_nombre || 0 }} transactions</div>
+          }
+        </div>
+
+        <div class="kpi-card teal">
+          <span class="kpi-icon"><i class='bx bxs-check-square'></i></span>
+          <div class="kpi-label">Mois en cours</div>
+          <div class="kpi-value teal-text" style="font-size:0.9rem;margin-top:4px;">
+            {{ moisLabel }}
+          </div>
+          <div class="kpi-meta">Statistiques globales</div>
+        </div>
+      </div>
     </div>
-  </div>
+
+    <!-- 5 dernières transactions système (pleine largeur) -->
+    <div class="bottom-grid">
+      <div class="dc-card" style="grid-column: 1 / -1;">
+        <div class="card-header-row">
+          <div>
+            <div class="dc-card-title">5 dernières transactions du système</div>
+            <div class="dc-card-sub">Toutes opérations — tous utilisateurs</div>
+          </div>
+          <a routerLink="/admin/supervision" class="btn-outline-sm">
+            Supervision <i class='bx bx-show'></i>
+          </a>
+        </div>
+
+        @if (adminLoading()) {
+          @for (i of [1,2,3,4,5]; track i) {
+            <div class="tx-skeleton"></div>
+          }
+        } @else if (!adminStats()?.dernieres_tx?.length) {
+          <div class="empty-state">
+            <span>📭</span>
+            <p>Aucune transaction enregistrée</p>
+          </div>
+        } @else {
+          @for (tx of adminStats()!.dernieres_tx; track tx.id) {
+            <div class="tx-item">
+              <div class="tx-icon" [class]="tx.type">{{ txIcon(tx.type) }}</div>
+              <div class="tx-body">
+                <div class="tx-label">{{ txLabel(tx) }}</div>
+                <div class="tx-meta">{{ tx.code }} · {{ tx.created_at | date:'dd/MM/yyyy HH:mm' }}</div>
+              </div>
+              <div class="tx-right">
+                <div class="tx-amount"
+                  [class.positive]="tx.type === 'depot'"
+                  [class.negative]="tx.type !== 'depot'">
+                  {{ tx.type === 'depot' ? '+' : '-' }}{{ tx.montant | number:'1.0-0':'fr-FR' }} FCFA
+                </div>
+                <span class="chip"
+                  [class]="tx.statut === 'valide' ? 'success' : tx.statut === 'en_cours' ? 'warn' : 'danger'">
+                  {{ tx.statut | uppercase }}
+                </span>
+              </div>
+            </div>
+          }
+        }
+      </div>
+    </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  VUE CLIENT                                                 -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  } @else {
+
+    <div class="top-grid">
+      <!-- Carte bancaire client -->
+      <div class="account-card">
+        <div class="card-inner">
+          <div class="card-top">
+            <div class="card-chip"></div>
+            <span class="card-brand">MYDIRECTCASH</span>
+          </div>
+          <div class="card-number">{{ auth.user()?.compte }} · XAF</div>
+          <div class="card-bottom">
+            <div>
+              <div class="card-owner-lbl">Titulaire</div>
+              <div class="card-owner-name">{{ auth.user()?.nom }} {{ auth.user()?.prenom }}</div>
+            </div>
+            <div class="card-balance-block">
+              <div class="card-balance-lbl">Solde disponible</div>
+              @if (compte.compte()) {
+                <div class="card-balance-val">
+                  {{ compte.compte()!.solde | number:'1.0-0':'fr-FR' }} FCFA
+                </div>
+              } @else {
+                <div class="skeleton-bal"></div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPIs client -->
+      <div class="kpi-grid">
+        <div class="kpi-card gold">
+          <span class="kpi-icon"><i class='bx bx-money-withdraw'></i></span>
+          <div class="kpi-label">Retrait de ce mois</div>
+          <div class="kpi-value gold-text">
+            {{ (totalDepotsMois().totalMontant | number:'1.0-0') || '0' }} FCFA
+          </div>
+          <div class="kpi-meta">{{ totalDepotsMois().totalNombre }} retrait(s)</div>
+        </div>
+        <div class="kpi-card danger">
+          <span class="kpi-icon"><i class='bx bx-send'></i></span>
+          <div class="kpi-label">Envois ce mois</div>
+          <div class="kpi-value danger-text">
+            {{ (totalEnvoiMois().totalMontant | number:'1.0-0') || '0' }} FCFA
+          </div>
+          <div class="kpi-meta">{{ totalEnvoiMois().totalNombre }} tx</div>
+        </div>
+        <div class="kpi-card teal">
+          <span class="kpi-icon"><i class='bx bxs-check-square'></i></span>
+          <div class="kpi-label">Transactions</div>
+          <div class="kpi-value teal-text">{{ txService.total() }}</div>
+          <div class="kpi-meta">100% succès</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transactions récentes + accès rapides -->
+    <div class="bottom-grid">
+      <div class="dc-card">
+        <div class="card-header-row">
+          <div>
+            <div class="dc-card-title">Transactions récentes</div>
+            <div class="dc-card-sub">5 dernières opérations</div>
+          </div>
+          <a routerLink="/transactions/historique" class="btn-outline-sm">
+            Voir tout <i class='bx bi-arrow-right'></i>
+          </a>
+        </div>
+
+        @if (txService.loading()) {
+          @for (i of [1,2,3]; track i) {
+            <div class="tx-skeleton"></div>
+          }
+        } @else {
+          @for (tx of txService.transactions().slice(0, 5); track tx.id) {
+            <div class="tx-item">
+              <div class="tx-icon" [class]="tx.type">{{ txIcon(tx.type) }}</div>
+              <div class="tx-body">
+                <div class="tx-label">{{ txLabel(tx) }}</div>
+                <div class="tx-meta">{{ tx.code }} · {{ tx.created_at | date:'dd/MM/yyyy HH:mm' }}</div>
+              </div>
+              <div class="tx-right">
+                <div class="tx-amount"
+                  [class.positive]="tx.type === 'depot'"
+                  [class.negative]="tx.type !== 'depot'">
+                  {{ tx.type === 'depot' ? '+' : '-' }}{{ tx.montant | number:'1.0-0':'fr-FR' }} FCFA
+                </div>
+                <span class="chip"
+                  [class]="tx.statut === 'valide' ? 'success' : tx.statut === 'en_cours' ? 'warn' : 'danger'">
+                  {{ tx.statut | uppercase }}
+                </span>
+              </div>
+            </div>
+          }
+          @if (txService.transactions().length === 0) {
+            <div class="empty-state">
+              <span>📭</span>
+              <p>Aucune transaction pour l'instant</p>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Accès rapides — CLIENT UNIQUEMENT -->
+      <div class="right-col">
+        <div class="dc-card">
+          <div class="dc-card-title">Accès rapides</div>
+          <div class="dc-card-sub">Opérations fréquentes</div>
+          <div class="quick-btns">
+            <a routerLink="/transactions/envoi" class="btn-quick gold">
+              <i class='bx bxs-send'></i> Envoyer
+            </a>
+            <a routerLink="/transactions/retrait" class="btn-quick ghost">
+              <i class='bx bx-money-withdraw'></i> Retirer
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  }
+
 </div>

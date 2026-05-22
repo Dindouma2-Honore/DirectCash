@@ -18,7 +18,8 @@
     <span class="nav-section">Principal</span>
     <a class="nav-item" routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}"
       (click)="close()">
-      <span class="nav-icon">📊</span> Tableau de bord
+      <span class="nav-icon"><i class='bx bxs-dashboard'></i>
+</span> Tableau de bord
     </a>
 
     <span class="nav-section">Authentification</span>
@@ -26,50 +27,48 @@
     <!-- Mon profil → route protégée /profil -->
     <a class="nav-item" routerLink="/profil" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}"
       (click)="close()">
-      <span class="nav-icon">👤</span> Mon profil
+      <span class="nav-icon"><i class='bx bx-user'></i></span> Mon profil
     </a>
 
-    <!-- Vérification OTP → déjà dans /securite/2fa -->
-    <!-- <a class="nav-item" routerLink="/securite/2fa" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}"
-      (click)="close()">
-      <span class="nav-icon">🔑</span> Vérification OTP
-    </a> -->
+    
 
+    <!-- Envoi & Retrait : réservés aux clients uniquement -->
+    @if (!auth.isAdmin()) {
     <span class="nav-section">Transactions</span>
-    <!-- <a class="nav-item" routerLink="/transactions/depot" routerLinkActive="active" (click)="close()">
-      <span class="nav-icon">⬇️</span> Dépôt
-    </a> -->
     <a class="nav-item" routerLink="/transactions/envoi" routerLinkActive="active" (click)="close()">
-      <span class="nav-icon">➡️</span> Envoi d'argent
+      <span class="nav-icon"><i class='bx bx-send'></i></span> Envoi d'argent
     </a>
     <a class="nav-item" routerLink="/transactions/retrait" routerLinkActive="active" (click)="close()">
-      <span class="nav-icon">⬆️</span> Retrait
+      <span class="nav-icon"><i class='bx bx-money-withdraw'></i></span> Retrait
     </a>
     <a class="nav-item" routerLink="/transactions/historique" routerLinkActive="active" (click)="close()">
-      <span class="nav-icon">📋</span> Historique
+      <span class="nav-icon"><i class='bx bx-history'></i></span> Historique
     </a>
+    }
+    
 
     <span class="nav-section">Sécurité</span>
+    <!-- Logs & Alertes : réservés aux admins/gestionnaires uniquement -->
+    @if (auth.isAdmin()) {
     <a class="nav-item" routerLink="/securite/logs" routerLinkActive="active" (click)="close()">
-      <span class="nav-icon">📄</span> Journaux
-      <!-- <span class="nav-badge warn">3</span> -->
+      <span class="nav-icon"><i class='bx bx-book-content'></i></span> Journaux
     </a>
     <a class="nav-item" routerLink="/securite/alertes" routerLinkActive="active" (click)="close()">
-      <span class="nav-icon">🚨</span> Alertes
+      <span class="nav-icon"><i class='bx bx-error-circle'></i></span> Alertes
       <span class="nav-badge"> {{ logservice.alertesActives().length }} </span>
-      
     </a>
+    }
     <a class="nav-item" routerLink="/securite/2fa" routerLinkActive="active" (click)="close()">
-      <span class="nav-icon">🛡️</span> Paramètres 2FA
+      <span class="nav-icon"><i class='bx bx-cog'></i></span> Paramètres 2FA
     </a>
 
     @if (auth.isAdmin()) {
     <span class="nav-section">Administration</span>
     <a class="nav-item" routerLink="/admin/utilisateurs" routerLinkActive="active" (click)="close()">
-      <span class="nav-icon">👥</span> Utilisateurs
+      <span class="nav-icon"><i class='bx bx-group'></i></span> Utilisateurs
     </a>
     <a class="nav-item" routerLink="/admin/supervision" routerLinkActive="active" (click)="close()">
-      <span class="nav-icon">🌐</span> Supervision
+      <span class="nav-icon"><i class='bx bx-show'></i></span> Supervision
     </a>
     }
 
@@ -84,6 +83,6 @@
         <div class="user-role">{{ auth.user()?.compte }} · {{ auth.user()?.role?.toUpperCase() }}</div>
       </div>
     </div>
-    <button class="btn-logout" (click)="auth.logout()">🚪 Déconnexion</button>
+    <button class="btn-logout" (click)="auth.logout()"><i class='bx bx-log-out'></i> Déconnexion</button>
   </div>
 </aside>

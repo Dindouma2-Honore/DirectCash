@@ -475,7 +475,7 @@
   flex-direction: column;
   gap: .5rem;
 }
-
+i{color: blue;}
 .btn-quick {
   display: flex;
   align-items: center;
@@ -493,8 +493,8 @@
 }
 
 .btn-quick.gold {
-  background: #e8b84b;
-  color: #0f1e35;
+  background: blue;
+  color: white;
 }
 .btn-quick.gold:hover {
   background: #c99a30;

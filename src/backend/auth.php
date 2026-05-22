@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/helpers.php';  // creerOTP + envoyerEmailOTP
+require_once __DIR__ . '/security.php';
 
 $action = $_GET['action'] ?? 'login';
 $method = $_SERVER['REQUEST_METHOD'];
@@ -36,7 +37,7 @@ function login(): void
     $compte = trim($data['compte'] ?? '');
     $mdp = trim($data['mot_de_passe'] ?? '');
 
-    // Rate limiting par IP et par compte
+    // Limite de restriction par IP et par compte
     rateLimit('login_ip_' . getIP(), 5, 600);
     rateLimit('login_compte_' . md5($compte), MAX_LOGIN_ATTEMPTS, LOCKOUT_DURATION);
 
@@ -73,7 +74,7 @@ function login(): void
     }
 
     if ($user['statut'] === 'verrouille') {
-        jsonError('Compte verrouillé. Contactez le support.', 403);
+        jsonError('Compte verrouillé. Contactez admininistrateur.', 403);
         return;
     }
 
@@ -96,7 +97,7 @@ function login(): void
     $pdo->prepare('
         INSERT INTO sessions (user_id, token_hash, appareil, localisation, ip, created_at, derniere_activite)
         VALUES (?, ?, ?, ?, ?, NOW(), NOW())
-    ')->execute([$user['id'], $token_hash, $appareil, $localisation, $ip]);  // ✅ $user['id'] au lieu de $userId
+    ')->execute([$user['id'], $token_hash, $appareil, $localisation, $ip]);  
 
     // Stocker session temporaire en attente OTP
     $tempToken = bin2hex(random_bytes(32));
@@ -105,7 +106,7 @@ function login(): void
          VALUES (?, ?, NOW())'
     )->execute([$tempToken, $user['id']]);
 
-    // ✅ Générer l'OTP et l'envoyer par email
+    // Générer l'OTP et l'envoyer par email
     $code = creerOTP($user['id']);
     envoyerEmailOTP($user['email'], $user['compte'], $code);
 
@@ -113,7 +114,7 @@ function login(): void
     jsonReponse([
         'otp_required' => true,
         'temp_token' => $tempToken,
-        'token' => $jwt,  // ✅ JWT retourné pour que Angular puisse l'utiliser
+        'token' => $jwt,  // JWT retourné pour que Angular puisse l'utiliser
         'message' => 'OTP envoyé par email.',
     ]);
 }
@@ -182,7 +183,7 @@ function detecterLocalisation(): string
     if ($ip === '127.0.0.1' || $ip === '::1')
         return 'Local';
 
-    // API gratuite de géolocalisation IP
+    // API  de géolocalisation IP
     $data = @file_get_contents("http://ip-api.com/json/{$ip}?fields=city,country&lang=fr");
     if ($data) {
         $geo = json_decode($data, true);
@@ -267,7 +268,7 @@ function inscrire(): void
     ], 201);
 }
 
-// ── REFRESH TOKEN ────────────────────────────────────────────────
+// ── RAFFRAICHIR TOKEN ────────────────────────────────────────────────
 function refreshToken(): void
 {
     $p = authentifier();
@@ -407,18 +408,18 @@ function majProfil(): void
 }
 
 // ── ENREGISTRER ÉCHEC AUTH ───────────────────────────────────────
+
 function enregistrerEchec(string $compte): void
 {
-    $pdo = getPDO();
+    $pdo  = getPDO();
     $stmt = $pdo->prepare(
         'SELECT COUNT(*) FROM tentatives_auth
          WHERE compte=? AND created_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE)'
     );
     $stmt->execute([$compte]);
-    $nb = (int) $stmt->fetchColumn();
+    $nb = (int)$stmt->fetchColumn();
 
-    $pdo
-        ->prepare('INSERT INTO tentatives_auth (compte, ip, created_at) VALUES (?, ?, NOW())')
+    $pdo->prepare('INSERT INTO tentatives_auth (compte, ip, created_at) VALUES (?, ?, NOW())')
         ->execute([$compte, getIP()]);
 
     if ($nb + 1 >= MAX_LOGIN_ATTEMPTS) {
@@ -427,11 +428,20 @@ function enregistrerEchec(string $compte): void
              VALUES (?, ?, DATE_ADD(NOW(), INTERVAL ' . LOCKOUT_DURATION . ' SECOND), NOW())'
         )->execute([$compte, getIP()]);
 
-        $pdo
-            ->prepare('UPDATE utilisateurs SET statut="verrouille" WHERE compte=?')
+        $pdo->prepare('UPDATE utilisateurs SET statut="verrouille" WHERE compte=?')
             ->execute([$compte]);
 
         logSec('BLOCK', "Compte verrouillé : {$compte} ({$nb} échecs)");
+
+        // ← Ajouter ceci
+        if (class_exists('LogService')) {
+            LogService::creerAlerte(
+                'brute_force',
+                'Compte verrouillé après tentatives répétées',
+                "Compte {$compte} verrouillé après {$nb} échecs depuis IP " . getIP(),
+                'critique'
+            );
+        }
     }
 }
 

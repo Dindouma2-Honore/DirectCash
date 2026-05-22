@@ -12,6 +12,7 @@
   transition: transform 0.3s ease;
   height: 100vh;
 }
+i{color: blue;}
 .sidebar-logo {
   padding: 1.25rem;
   border-bottom: 1px solid #1c2a3e;

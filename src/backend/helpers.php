@@ -6,7 +6,7 @@
 // ================================================================
 declare(strict_types=1);
 
-// Autoload PHPMailer (composer)
+// Chargement automatique PHPMailer (composer)
 if (file_exists(__DIR__ . '/vendor/autoload.php')) {
     require_once __DIR__ . '/vendor/autoload.php';
 }
@@ -21,7 +21,7 @@ function creerOTP(int $userId): string
     $code = str_pad((string)random_int(0, 999999), OTP_LENGTH, '0', STR_PAD_LEFT);
     $hash = hash('sha256', $code);
 
-    // Stocker en clair uniquement en développement
+    // Stocker en clair  en développement
     $codePlain = (DC_ENV === 'development') ? $code : null;
 
     $pdo = getPDO();

@@ -42,7 +42,7 @@
             </div>
           }
           @if (logsFiltres().length === 0) {
-            <div class="empty-log">📋 Aucun événement</div>
+            <div class="empty-log"><i class='bx bx-data'></i> Aucun événement</div>
           }
         }
       </div>
@@ -51,17 +51,17 @@
     <!-- Stats -->
     <div class="stats-col">
       <div class="stat-card success">
-        <div class="stat-ico">✅</div>
+        <div class="stat-ico"><i class='bx bx-check-square'></i></div>
         <div class="stat-label">Événements OK</div>
         <div class="stat-val success-text">{{ stats().ok }}</div>
       </div>
       <div class="stat-card danger">
-        <div class="stat-ico">🚫</div>
+        <div class="stat-ico"><i class='bx bx-block'></i></div>
         <div class="stat-label">Attaques bloquées</div>
         <div class="stat-val danger-text">{{ stats().block }}</div>
       </div>
       <div class="stat-card warn">
-        <div class="stat-ico">⚠️</div>
+        <div class="stat-ico"><i class='bx bxs-error'></i></div>
         <div class="stat-label">Avertissements</div>
         <div class="stat-val warn-text">{{ stats().warn }}</div>
       </div>

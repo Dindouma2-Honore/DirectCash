@@ -6,7 +6,7 @@ import { AuthService } from '../services/auth.service';
 import { ToastService } from '../services/toast.service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
-  const auth  = inject(AuthService);
+  const auth = inject(AuthService);
   const toast = inject(ToastService);
 
   return next(req).pipe(
@@ -22,10 +22,22 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           // Pas de toast — l'auth service gère le fallback démo silencieusement
           break;
         case 401:
-          // Ne déconnecter que si le token est réel (pas demo)
           if (!auth.getToken()?.startsWith('demo.')) {
-            toast.error('Session expirée. Reconnectez-vous.');
-            auth.logout();
+            // Exclure les routes métier qui peuvent légitimement retourner 401
+            const urlMetier = [
+              'verifier_pin',
+              'send_otp_retrait',
+              'send_otp_envoi',
+              'retrait',
+              'envoi'
+            ].some(route => req.url.includes(route));
+
+            if (!urlMetier) {
+              // Vrai 401 de session → déconnecter
+              toast.error('Session expirée. Reconnectez-vous.');
+              auth.logout();
+            }
+            
           }
           break;
         case 403:
